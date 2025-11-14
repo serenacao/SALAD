@@ -2,61 +2,50 @@
 
 ## Domain
 
-WILG administration: WILG has a lot of complex processes behind the scenes that help keep the house running that are currently run manually. There is a cooking schedule with dinner 6x a week, all cooked by house members, and groceries need to be ordered for these dinners and for general snacks/breakfast. There is also a chore system involving kitchen jobs, house jobs and bathroom jobs. Since WILG does not have a cleaning service, these jobs are extremely important in keeping the house functional and livable.
+Gym/Working out: It can be tough to keep track of workout routines, and one can forget when they decided to workout especially when they first begin, have other events going on in their life, or are afraid of going to workout for one reason or another.
 
 ## Problem
 
-WILG Chores: Assigning chores and tracking chore completion. This is done via a Google form and witnessing system that our house managers have to manually track and collect every month. Missed chores result in fines, but these fines increase exponentially, not linearly. People also can swap chores, which has to be tracked manually. A lot of the tasks involved here (tracking hours, calculating fines) can be automated. Additionally, having a place where people can see which jobs they've logged (which currently is not available) would be really useful for residents.
+Improving Workout Consistency:
+Going to the gym by yourself can get tough. You may have other events distracting you or may not be comfortable going to the gym by yourself. Not everyone is comfortable being in a gym, and life gets tough with work and leads to pushing your workout to another day. However, when you involve other people in your gym journey, they can push you to improve your workout habits, such as working out more often, and help you learn new exercise routines.
 
 ## Evidence
 
-1. [Communal Intimacy: Formalization, Egalitarianism, and Exchangeability in Collective Housing](https://academic.oup.com/sf/article/100/1/273/5933783?login=true). This research paper discusses how communal living tends to demand egalitarianism in the distribution of chores and tasks in comparison to family living, and that this egalitarianism actually contributes to communal intimacy.
+1. [Working out with friends can motivate you to work harder and leads to higher release of happy chemicals](https://www.anthro.ox.ac.uk/article/why-exercising-friends-could-be-better-you)
+   (https://www.onepeloton.com/blog/working-out-with-friends)
 
-2. [Co-Housing to Ease and Share Household Chores? Spatial Visibility and Collective Deliberation as Levers for Gender Equality](https://www.mdpi.com/2075-5309/11/5/189) This research paper discusses how in one investigation into co-housing projects in Brussels, egalitarian distribution of chores within a shared communal living space can ease burdens on individuals and allow women to lead more socially and politically engaged lives.
+2. [Going to the gym alone is intimidating - redditors have mentioned it helps to have a personal trainer/buddy/or to ask for guidance from someone there] (https://www.reddit.com/r/NoStupidQuestions/comments/1osz9jd/is_going_to_the_gym_alone_intimidating_at_first/)
 
-3. [Why Communal Living Can Make Us Happier](https://www.bbc.com/culture/article/20240429-why-living-with-strangers-can-make-us-happier). This article discusses how communal living systems that involve chore schedules and cooking plans or other modes of shared responsibility can help provide community and alleviate burdens.
+3. [Half of Americans Suffer from gym anxiety - to the point that it prevents people from going to the gym] (https://www.healthandfitness.org/improve-your-club/industry-news/fitness-industry-roundup-gym-timidation-is-real/)
 
-4. Personal Experience: One of the team members, Alexis, is president of WILG, and has experience working with the house managers. When house managers are really hosed, a lot of chore tracking gets delayed. If this was automated, we wouldn't experience this problem at all.
+4. [A study found that people had a 65% chance of completing a goal if they told someone else they’re committing to doing it. And if they had specific check-ins with a partner, their chance increased to 95%.] (https://www.theguardian.com/lifeandstyle/2023/nov/27/the-buddy-boost-how-accountability-partners-make-you-healthy-happy-and-more-successful)
 
-5. [Gamefication + Online Apps Encourage Chore Completion](https://www.mirror.co.uk/lifestyle/family/family-chore-app-chorly-review-34118059) “The kids have enjoyed being able to tick off their chores and work towards treats, with the added side benefit of them trying to decide whether to save or spend their stars[…]they’ve actually also started suggesting tasks to add to the app and are much more open to helping”
+5. [Working out was way easier with a buddy - “Couple years ago when I still went to the gym I was only able to do it bc I had a gym buddy. Without my friend I didn’t even think about going there. So maybe a workout buddy might help. Nowadays I grab a friend and go on a hike once every 1-2 months … by myself though? Nope.”](https://www.reddit.com/r/ADHD/comments/16f4v6l/struggling_to_exercise_regularly_how_do_you_form/)
 
 ## Comparables
 
-1. [OurHome](http://ourhomeapp.com/). A family chore tracking app that allows families to track chores and assigns points to those who complete their chores. Good for a family, but not super compatible with WILG, which is a 30+ member community with very specific chores that come with specific time frames. This app also does not have chore swapping or fine tracking.
+1. [Strava](https://www.strava.com/) Strava is a popular fitness app where you can track your training and connect with the community, forming run clubs and competing for points. It doesn’t have an official way to verify what you do, however, so it’s not hard to cheat the system. It also focuses specifically on running, so not much of community for those who prefer other activities
 
-[Flatastic](https://www.flatastic-app.com/en/)
-Flatastic is a household organization app that helps roommates, couples, or families coordinate chores, shopping lists, and shared expenses. It keeps everyone on the same page with features like reminders, task tracking, and a shared pinboard for communication.
+2. [Gymverse](https://fitness22.com/our-apps/) Gymverse is a virtual coach that keeps track of gym progress and has a library of exercise tutorials. It has a lot of great information for beginners, but doesn’t really have a social aspect
 
-[Connecteam](https://connecteam.com/best-team-management-apps/)
-A workplace organization app with features to assign tasks, have people clock in and out, create checklists, etc. This app allows for one person to manage a large group and easily keep track of who has done what, which is probably better for larger living groups, but the app is specialized for businesses, not homes.
+3. [GymBuddy](https://www.gymbuddyapp.com/) GymBuddy is an app to find people to work out with in your area. It has a strong social aspect and helps manage logistics like booking classes, but doesn’t keep track of any actual progress
 
-[Nipto](https://nipto.app/)
-Family chores app where people compete for points by doing chores on the chores list. The person who got the most points the previous week gets bonus points for the current week. This is a strong incentive for larger groups where people may be less interested in doing chores, but WILG does currently have a penalty/fine system for not doing chores so this might be unnecessary.
+4. [Stridekick](https://play.google.com/store/apps/details?id=com.stridekick.Stridekick) Stridekick allows you to compete in activity challenges with your friends and family and use your smart watch to log points, keeping you accountable for your workouts. This app only focuses on walking/running.
 
-[Maple](https://www.growmaple.com/calendar)
-Chores app inspired by management apps like Slack. There’s a shared calendar showing all the family chores and a meal prep feature where you can manage recipes and shopping lists, which is an additional feature many of these apps don’t have.
+5. [Shred](https://play.google.com/store/apps/details?id=app.shred.android) SHRED allows you to reach your fitness goals via an AI personal trainer while having a large community of friends + strangers who are working alongside you - “Got this app so my boyfriend and I could match workout routines and keep track of our progress and weights.”
 
 ## Features
 
-1. For house managers: chore assignment and chore approval. Chores are either weekly, bi-weekly, or daily and are assigned to one person for the whole semester. There is a fixed number of hours per chore that are expected to be completed by the end of the semester, to be determined by the house managers. Each resident has a kitchen job (involving cleaning the kitchen in some way) and a house job. The house managers need to approve each job before it can be logged as completed.
-2. For each resident: chore completion submission form for each job with date field and witness field. The witness needs to approve the chore before it’s logged as a completed chore.
-3. For each resident: a pool of all jobs completed by others with this resident listed as witness. The resident needs to approve those jobs before they can be logged as completed.
-4. For each resident: A log of all completed chores for this resident.
-5. For each resident: Calculation of end-of-semester fines based on the amount of hours still needed in the semester.
-6. [Bonus, if we have time] Makeup hour functionality that allows the house managers to create certain jobs as makeup hours and also for residents to give up their jobs as makeup hours and then also claim makeup hours.
+1. Exercise Challenges: Friends can issue challenges to each other (can issue challenges to multiple people, forming a challenge group), e.g. (large challenges, like 4x a week for 2 months of 10x3 pushups, etc., or small challenges like go running for 30 min on Wednesday). You can also issue a challenge to yourself. Default challenges based on skill level will be provided in-app in case people aren’t sure what challenges to issue.
+2. Social Verification: Someone not participating in the challenge has to verify that you completed a step in the challenge.
+3. Point System and Weekly/Monthly Ranking: Completion of steps of challenges and challenges themselves result in points. Number of participants and difficulty of challenge (frequency + intensity) all affect how many points a challenge is worth. Bonus points for when everyone in a challenge completes the challenge. Within your friend group, you can see who has the most points at the end of each week. Failure to complete a challenge results in loss of all points associated with that challenge.
+4. Exercise Tracking: Completed exercise sessions are logged and stored so users can go back and see their activity. Completed challenges are also tracked.
 
 ## Ethical Analysis
 
-1. WILG Jobs House Managers are a stakeholder that have a lot of control over the jobs system. These privileges should not be widely available, so there should be a user authentication feature that ensures only select users (house managers) can access certain functionality.
-
-2. WILG Residents are another stakeholder that can experience financial penalties due to missed chores. Making it easier for them to see which jobs they’ve already completed and logged via a user-specific completed jobs dashboard will help them stay on top of their jobs and be more aware of where they stand in terms of hours owed.
-
-3. WILG members relationships with one another may be affected. It could cause tensions between administrators and residents since there is an innate power difference between those who carry out penalties and those who receive it, could lead to people pairing up to check off their chores (maliciously). However, it might also lead to people becoming closer (they might do each other’s tasks when one person is busy + the other person isn’t)
-
-4. Short term effects might include an initial learning curve in adoption of the tool. This might cause some resistance when there is already a system in place, like for WILG, even if that system is faulty. For busy students, like those who run WILG, this initial hurdle might be too big to overcome.
-
-5. To adapt this tool to encourage chore completion, additional functionality might be necessary. This app already facilitate the assigning and submission of chores. But if there’s only one centralized manager assigning chores, it might encourage people to only do chores that have been assigned and not things they see around the house, so we could allow everyone to add chores for additional rewards or some other benefit.
-
-6. This app might only be suitable for certain types of chore cultures, as the system it implements leans toward the punitive side, with penalties rather than rewards. Some cultures do not assign chores to the children, which could lead to resistance to adaptation of the system. People who are not used to doing chores might be more liable to forgetting to use the app, especially in a college setting where people are transitioning from an at home setting to a foreign college setting.
-
-7. We want to uphold the values of community, cooperation, ownership, and trust. This is because our features require for there to be a trust that the members will be honest about completing their tasks, as well as the witnesses. It also requires there to be ownership on the end of the person completing the tasks. It requires cooperation, since house managers will be assigning to residents. It requires community, since everyone needs to be communicative and work together to complete their chores successfully.
+1. This app relies on the trustworthiness of users. Verification, which underpins the point system, relies on both the verifier and the verify-ee. This could easily be taken advantage of. But since this is an app meant to help users develop healthy exercise habits, it’s ultimately in all users best interest to be as honest as possible; points in an app mean much less than actual improvement in real life.
+2. Some users may not be that educated on what are reasonable challenges; this could result in users participating in challenges that are too difficult for their skill level and injuring themselves. Part of our design will include some basic default challenges that users can issue depending on their experience so that those with less experience can start somewhere without going too extreme.
+3. This app is geared towards community formation. The more users participate in a challenge, the higher the point rewards are for completing the challenge. Verification also requires individuals not in the challenge for verification, which forces people to interact with at least one other person to get any points.
+4. The app would make existing friendships closer, especially between those that are physically active, and would likely redistribute time amongst friend groups. The app could also cause tensions, especially if the friend is especially flakey or does not want to commit.
+5. This app encourages gym patronage, so it might be a good business decision for gyms to promote the app. An extension of the app could also be gym-specific app versions, where you have to go to a specific gym to get points.
+6. For users concerned with privacy, the public viewability of challenges might be uncomfortable for them. It might then be reasonable to allow privacy settings for different challenges. However this raises concerns with transparency – if people can’t see what challenges a user is completing, they might not trust their points.
