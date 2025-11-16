@@ -46,6 +46,8 @@ a set of VerificationRequest VerificationRequests with
 
 &ensp; a Part
 
+&ensp; a file Evidence
+
 &ensp; a boolean Approved
 
 **invariants**
