@@ -26,7 +26,7 @@ uploadUser(username: String, password: String): User
 
 removeUser(user: User)
 
-**requires** user is in Users, user is not ProduceFoodStud or CostcoFoodStud
+**requires** user is in Users
 
 **effect** removes user from Users
 
