@@ -7,3 +7,5 @@
 [Design Summary](./Design%20Summary.md)
 
 [Concepts](./src/concepts/)
+
+[Syncs](./design/syncs/)

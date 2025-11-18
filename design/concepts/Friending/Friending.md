@@ -15,10 +15,13 @@ a set of FriendRequests
     - requires: requester, receiver are not friends and both registered users
     - effects: sends a friend request from requester to receiver
 
-- acceptFriend(user: User, request: FriendRequest): (request: FriendRequest)
-    - requires: the receiver of the request is user 
+- acceptFriend(user: User, requester: User): ()
+    - requires: there exists a FriendRequest between user and requester
     - effects: sets the flag to true, requester and receiver are friends
 
-- removeFriend(user: User, request: FriendRequest): ()
+- removeFriend(user: User, requester: User): ()
     - requires: user is the requester or receiver of the request
     - effects: removes the friendrequest
+
+- getFriends(user: User): (friends: User[])
+    - effects: returns a list of users who are friends of the user

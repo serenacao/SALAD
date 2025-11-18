@@ -18,3 +18,10 @@ a set of Profiles
 - edit(user: User, name: string, location: string, bio: string): (profile: Profile)
     - requires: user already has an existing profile  
     - effects: updates user's profile with the inputted name, location and bio
+
+- delete(user: User)
+    - requires: user already has an existing profile
+    - effects: removes user's profile
+
+- getProfile(user: User)
+    - effects: returns profile by user
