@@ -6,7 +6,7 @@
 a set of Group
     a user Leader
     a flag isPrivate
-    a set of user Users
+    a set of user Members
 
 a set of GroupRequests
     a user Requester
@@ -28,6 +28,18 @@ a set of GroupRequests
 - leave(user: User, group: Group): (group: Group)
     - requires: user is authenticated and logged in, user belongs to the group
     - effects: user leaves the group
-- delete(user: User, group: Group)
+- delete(user: User, group: Group): (group: Group)
     - requires: user is authenticated and logged in, user owns the group
-    - effects: user deletes the group, all users in the group automatically leave
+    - effects: user leaves and deletes the group 
+    
+- getGroups(user: User): (groups: Group[])
+    - effects: returns list of groups owned by user 
+- getMembers(group: Group): (members: User[])
+    - requires: group exists
+    - effects: returns list of members of group
+- getLeader(group: Group): (leader: User)
+    - requires: group exists
+    - effects: returns leader of group 
+- isPrivate(group: Group): (isPrivate: flag)
+    - requires: group exists
+    - effects: returns if group is private or not
