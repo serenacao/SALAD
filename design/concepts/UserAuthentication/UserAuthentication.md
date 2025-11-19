@@ -8,9 +8,9 @@
 
 a Set of User Users with
 
-a String username
+&ensp; a String username
 
-a String Password
+&ensp; a String Password
 
 **invariants**
 
@@ -65,3 +65,9 @@ login(username: String, password: String): User
 **requires** there is a User with username in Cooks
 
 **effect** returns User associated with username
+
+\_isRegisteredUser(user:User): Boolean
+
+**requires** nothing
+
+**effect** returns whether or not user is in Users

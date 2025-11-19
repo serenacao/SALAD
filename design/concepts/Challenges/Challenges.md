@@ -52,7 +52,7 @@ a set of VerificationRequest VerificationRequests with
 
 &ensp; a User Requester
 
-&ensp; a User Approver
+&ensp; a string ApproverEmail
 
 &ensp; a Challenge
 
