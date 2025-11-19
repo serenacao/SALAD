@@ -6,6 +6,12 @@
 
 [Design Summary](./design/Design%20Summary.md)
 
+[UI Sketches](./design/GymTogether%20quick%20sketches.pdf)
+
+[Visual Design Study](./design/Visual%20Design%20Study/)
+
+[User Journey](./design/UserJourney.md)
+
 [Concepts](./src/concepts/)
 
 [Syncs](./design/syncs/)
