@@ -110,7 +110,7 @@ leaveChallenge(challenge: Challenge, user: User)
 
 **requires** challenge exists in Challenges, user is in Users for challenge
 
-**effect** deletes User from from Users
+**effect** deletes User from from Users and also from any Completers sets it was apart of
 
 completePart(part: Part, user: User)
 
@@ -215,3 +215,15 @@ verify(part: Part, requester: User)
 **requires** challenge exists in Challenges
 
 **effect** returns BonusPoints for challenge
+
+\_getChallenges(user: User): Array of Challenge
+
+**requires** nothing
+
+**effect** returns every Challenge for which user is in Users and has Accepted as True
+
+\_getAssociatedChallenge(part: Part): Challenge
+
+**requires** part is in Parts
+
+**effect** returns Challenge associated with Part
