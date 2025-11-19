@@ -34,7 +34,7 @@ a set of Challenge Challenges with
 
 &ensp; a number Points (per part)
 
-&ensp; a number Bonus (upon completion of entire challenge)
+&ensp; a number BonusPoints (upon completion of entire challenge)
 
 &ensp; a boolean Open
 
@@ -74,7 +74,7 @@ createChallenge(creator: User or Group, level: number, exercise: string, reps?: 
 
 **requires** level is an integer in \{1, 2, 3\}, reps and sets are positive integers if they exist, weight and minutes are positive numbers if they exist
 
-**effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and Bonus based on level, frequency and duration; creates a new Part for every week and day of the challenge with Completers set to an empty set
+**effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, frequency and duration; creates a new Part for every week and day of the challenge with Completers set to an empty set
 
 openChallenge(challenge: Challenge)
 
@@ -186,20 +186,32 @@ verify(part: Part, requester: User)
 
 **effect** returns every user in Users for this challenge
 
-\_getCompleters(challenge: Challenge)
+\_getCompleters(challenge: Challenge): Array of User
 
 **requires** challenge exists in Challenge
 
 **effect** returns every user in Users for this challenge where Completed is True
 
-\_getChallengeDetails(challenge: Challenge)
+\_getChallengeDetails(challenge: Challenge): Array of Dict
 
 **requires** challenge exists in Challenges
 
 **effect** returns Exercise, Level, Frequency, Duration, Reps, Sets, Minutes, Weight for this Challenge
 
-\_getCreator(challenge: Challenge)
+\_getCreator(challenge: Challenge): User or Group
 
 **requires** challenge exists in Challenges
 
 **effect** returns Creator for challenge
+
+\_getPartPoints(part: Part): Number
+
+**requires** part exists in Parts
+
+**effect** returns Points for the Challenge associated with part
+
+\_getChallengePoints(challenge: Challenge): Number
+
+**requires** challenge exists in Challenges
+
+**effect** returns BonusPoints for challenge

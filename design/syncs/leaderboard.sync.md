@@ -1,1 +1,3 @@
 # Leaderboard Sync
+
+**sync** addPoints
