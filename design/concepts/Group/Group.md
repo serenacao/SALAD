@@ -1,4 +1,5 @@
-# concept Group 
+# concept Group
+
 - **purpose** to form larger networks of users
 - **principle** users can request to join groups or just be added by groups; a group can then issue challenges to all members
 

@@ -12,13 +12,12 @@ Going to the gym by yourself can get tough. You may have other events distractin
 ## Evidence
 
 1. [Working out with friends can motivate you to work harder and leads to higher release of happy chemicals](https://www.anthro.ox.ac.uk/article/why-exercising-friends-could-be-better-you)
-   (https://www.onepeloton.com/blog/working-out-with-friends)
 
-2. [Going to the gym alone is intimidating - redditors have mentioned it helps to have a personal trainer/buddy/or to ask for guidance from someone there] (https://www.reddit.com/r/NoStupidQuestions/comments/1osz9jd/is_going_to_the_gym_alone_intimidating_at_first/)
+2. [Going to the gym alone is intimidating - redditors have mentioned it helps to have a personal trainer/buddy/or to ask for guidance from someone there](https://www.reddit.com/r/NoStupidQuestions/comments/1osz9jd/is_going_to_the_gym_alone_intimidating_at_first/)
 
-3. [Half of Americans Suffer from gym anxiety - to the point that it prevents people from going to the gym] (https://www.healthandfitness.org/improve-your-club/industry-news/fitness-industry-roundup-gym-timidation-is-real/)
+3. [Half of Americans Suffer from gym anxiety - to the point that it prevents people from going to the gym](https://www.healthandfitness.org/improve-your-club/industry-news/fitness-industry-roundup-gym-timidation-is-real/)
 
-4. [A study found that people had a 65% chance of completing a goal if they told someone else they’re committing to doing it. And if they had specific check-ins with a partner, their chance increased to 95%.] (https://www.theguardian.com/lifeandstyle/2023/nov/27/the-buddy-boost-how-accountability-partners-make-you-healthy-happy-and-more-successful)
+4. [A study found that people had a 65% chance of completing a goal if they told someone else they’re committing to doing it. And if they had specific check-ins with a partner, their chance increased to 95%.](https://www.theguardian.com/lifeandstyle/2023/nov/27/the-buddy-boost-how-accountability-partners-make-you-healthy-happy-and-more-successful)
 
 5. [Working out was way easier with a buddy - “Couple years ago when I still went to the gym I was only able to do it bc I had a gym buddy. Without my friend I didn’t even think about going there. So maybe a workout buddy might help. Nowadays I grab a friend and go on a hike once every 1-2 months … by myself though? Nope.”](https://www.reddit.com/r/ADHD/comments/16f4v6l/struggling_to_exercise_regularly_how_do_you_form/)
 
