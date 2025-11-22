@@ -37,11 +37,11 @@ export default class UserAuthenticationConcept {
   }): Promise<{ user: User } | { error: string }> {
     try {
       // check that there is no user with this username
-      const matchingusernameUser = await this.users.findOne({
+      const matchingUsernameUser = await this.users.findOne({
         username: username,
       });
       assert(
-        matchingusernameUser === null,
+        matchingUsernameUser === null,
         "User already exists with this username"
       );
 
@@ -164,7 +164,7 @@ export default class UserAuthenticationConcept {
   }
 
   async _getUsers(): Promise<Array<{ user: User; username: string }>> {
-    const users = await this.users.find({ isAdmin: false }).toArray();
+    const users = await this.users.find().toArray();
     const output: Array<{ user: User; username: string }> = [];
 
     users.forEach((userDoc) => {
@@ -191,7 +191,6 @@ export default class UserAuthenticationConcept {
   }): Promise<Array<{ user: User }>> {
     const userDoc = await this.users.findOne({
       username: username,
-      isAdmin: false,
     });
     assertExists(userDoc);
     return [{ user: userDoc._id }];
