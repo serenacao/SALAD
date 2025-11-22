@@ -125,7 +125,7 @@ export default class ChallengesConcept {
     frequency: number,
     duration: number
   ): number {
-    return Math.round(level * frequency * duration * 5);
+    return Math.round(level * frequency ** 1.5 * duration ** 2);
   }
 
   /**
