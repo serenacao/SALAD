@@ -1,46 +1,87 @@
-# concept Group
+**concept** Group \[User\]
 
-- **purpose** to form larger networks of users
-- **principle** users can request to join groups or just be added by groups; a group can then issue challenges to all members
+**purpose** to form larger networks of users
 
-- **state**
-    - a set of Group
-        - a user Leader
-        - a flag isPrivate
-        - a set of user Members
+**principle** users can request to join groups or just be added by groups; a group can then issue challenges to all members
 
-    - a set of GroupRequests
-        - a user Requester
-        - a group Group
+**state**
 
-- **actions**
-    - create(user: User, name: string, isPrivate: flag): (group: Group)
-        - requires: user is authenticated and logged in
-        - effects: creates a group with name and is request-only if isPrivate is true
-    - request(user: User, group: Group): (request: GroupRequest)
-        - requires: user is authenticated and logged in, group exists, user is not in group
-        - effects: creates a group request for user to join the group if the group is private
-    - accept(user: User, request: GroupRequest): (group: Group)
-        - requires: user is authenticated and logged in, user owns the group that is being requested
-        - effects: accepts join request, adds requester to the group
-    - deny(user: User, request: GroupRequest): (group: Group)
-        - requires: user is authenticated and logged in, user owns the group that is being requested
-        - effects: denies join request, group is unchanged
-    - leave(user: User, group: Group): (group: Group)
-        - requires: user is authenticated and logged in, user belongs to the group
-        - effects: user leaves the group
-    - delete(user: User, group: Group): (group: Group)
-        - requires: user is authenticated and logged in, user owns the group
-        - effects: user leaves and deletes the group 
-        
-    - getGroups(user: User): (groups: Group[])
-        - effects: returns list of groups owned by user 
-    - getMembers(group: Group): (members: User[])
-        - requires: group exists
-        - effects: returns list of members of group
-    - getLeader(group: Group): (leader: User)
-        - requires: group exists
-        - effects: returns leader of group 
-    - isPrivate(group: Group): (isPrivate: flag)
-        - requires: group exists
-        - effects: returns if group is private or not
+a set of Group Groups
+
+&ensp; a string Name
+
+&ensp; a user Leader
+
+&ensp; a boolean Private
+
+&ensp; a set of User Members
+
+a set of GroupRequest GroupRequests
+
+&ensp; a User Requester
+
+&ensp; a Group
+
+**actions**
+
+create(leader: User, name: string, private: boolean): (group: Group)
+
+**requires** name is not an empty string
+
+**effect** creates a group with name, private, leader
+
+request(user: User, group: Group): (request: GroupRequest)
+
+**requires** group is in Groups, user is not in group
+
+**effect** creates a GroupRequest with group and user as Requester
+
+accept(request: GroupRequest): (group: Group)
+
+**requires** request is in GroupRequests
+
+**effect** adds Requester of request to Members for Group of request; deletes request from GroupRequests
+
+deny(request: GroupRequest): (group: Group)
+
+**requires** request is in GroupRequests
+
+**effect** removes request from GroupRequests
+
+leave(user: User, group: Group): (group: Group)
+
+**requires** group is in Groups; user is in Members for group
+
+**effect** removes user from Members for group
+
+delete(group: Group): (group: Group)
+
+**requires** group is in Groups
+
+**effect** removes group from Groups
+
+**queries**
+
+\_getGroups(user: User): (groups: Group[])
+
+**requires** nothing
+
+**effect** returns list of groups owned by user
+
+\_getMembers(group: Group): (members: User[])
+
+**requires** group is in Groups
+
+**effect** returns Members of group
+
+\_getLeader(group: Group): (leader: User)
+
+**requires** group is in Groups
+
+**effect** returns Leader of group
+
+\_isPrivate(group: Group): (isPrivate: flag)
+
+**requires** group is in Groups
+
+**effect** returns Private of group
