@@ -222,7 +222,7 @@ export const UpdateusernameRequest: Sync = ({
 
 export const UpdateusernameResponseSuccess: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "/updateusername" }, { request }],
+    [Requesting.request, { path: "/updateUsername" }, { request }],
     [UserAuthentication.updateusername, {}, {}]
   ),
   then: actions([Requesting.respond, { request, status: "updated username" }]),
@@ -230,7 +230,7 @@ export const UpdateusernameResponseSuccess: Sync = ({ request }) => ({
 
 export const UpdateusernameResponseError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "/updateusername" }, { request }],
+    [Requesting.request, { path: "/updateUsername" }, { request }],
     [UserAuthentication.updateusername, {}, { error }]
   ),
   then: actions([Requesting.respond, { request, error }]),
