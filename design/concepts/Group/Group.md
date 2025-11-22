@@ -30,31 +30,31 @@ create(leader: User, name: string, private: boolean): (group: Group)
 
 **effect** creates a group with name, private, leader
 
-request(user: User, group: Group): (request: GroupRequest)
+request(user: User, group: Group): (groupRequest: GroupRequest)
 
 **requires** group is in Groups, user is not in group
 
 **effect** creates a GroupRequest with group and user as Requester
 
-accept(request: GroupRequest): (group: Group)
+accept(request: GroupRequest)
 
 **requires** request is in GroupRequests
 
 **effect** adds Requester of request to Members for Group of request; deletes request from GroupRequests
 
-deny(request: GroupRequest): (group: Group)
+deny(request: GroupRequest)
 
 **requires** request is in GroupRequests
 
 **effect** removes request from GroupRequests
 
-leave(user: User, group: Group): (group: Group)
+leave(user: User, group: Group)
 
 **requires** group is in Groups; user is in Members for group
 
 **effect** removes user from Members for group
 
-delete(group: Group): (group: Group)
+delete(group: Group)
 
 **requires** group is in Groups
 
