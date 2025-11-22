@@ -16,7 +16,7 @@ const SYNCS_DIR = Deno.env.get("SYNCS_DIR") ?? "src/syncs/";
  *          fully-qualified name (e.g., 'user.login.Signup').
  */
 export async function initSynchronizations(
-  syncsDir: string = SYNCS_DIR,
+  syncsDir: string = SYNCS_DIR
 ): Promise<Record<string, Sync>> {
   const syncs: Record<string, Sync> = {};
   const absoluteSyncsDir = path.resolve(syncsDir);
@@ -50,7 +50,7 @@ export async function initSynchronizations(
     } catch (error) {
       console.error(
         `  -> ERROR: Failed to load syncs from ${entry.path}:`,
-        error,
+        error
       );
     }
   }
