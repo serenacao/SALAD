@@ -16,7 +16,7 @@ a set of Group Groups
 
 &ensp; a set of User Members
 
-a set of GroupRequest GroupRequests
+a set of MembershipRequest MembershipRequests
 
 &ensp; a User Requester
 
@@ -30,23 +30,23 @@ create(leader: User, name: string, private: boolean): (group: Group)
 
 **effect** creates a group with name, private, leader
 
-request(user: User, group: Group): (groupRequest: GroupRequest)
+request(user: User, group: Group): (membershipRequest: MembershipRequest)
 
 **requires** group is in Groups, user is not in group
 
-**effect** creates a GroupRequest with group and user as Requester
+**effect** creates a MembershipRequest with group and user as Requester
 
-accept(request: GroupRequest)
+accept(request: MembershipRequest)
 
-**requires** request is in GroupRequests
+**requires** request is in MembershipRequests
 
-**effect** adds Requester of request to Members for Group of request; deletes request from GroupRequests
+**effect** adds Requester of request to Members for Group of request; deletes request from MembershipRequests
 
-deny(request: GroupRequest)
+deny(request: MembershipRequest)
 
-**requires** request is in GroupRequests
+**requires** request is in MembershipRequests
 
-**effect** removes request from GroupRequests
+**effect** removes request from MembershipRequests
 
 leave(user: User, group: Group)
 
@@ -80,8 +80,32 @@ delete(group: Group)
 
 **effect** returns Leader of group
 
+\_getName(group: Group): string
+
+**requires** group is in Groups
+
+**effect** returns Name of group
+
 \_isPrivate(group: Group): (isPrivate: flag)
 
 **requires** group is in Groups
 
 **effect** returns Private of group
+
+\_getPublicGroups(): Array of Group
+
+**requires** nothing
+
+**effect** returns every group in Group where Private is True
+
+\_getGroupRequests(group: Group): Array of GroupRequest
+
+**requires** group exists in Group
+
+**effect** returns all GroupRequests where Group is group
+
+\_getUserRequests(user: User): Array of GroupRequest
+
+**requires** nothing
+
+**effect** returns all GroupRequests where Requester is user
