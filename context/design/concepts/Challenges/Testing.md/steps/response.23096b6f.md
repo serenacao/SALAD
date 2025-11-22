@@ -1,12 +1,9 @@
-[@concept-design-overview](../../background/concept-design-overview.md)
+---
+timestamp: 'Sat Nov 22 2025 16:18:33 GMT-0500 (Eastern Standard Time)'
+parent: '[[../20251122_161833.9b13e0ef.md]]'
+content_id: 23096b6fc2d4ec089abac31e3184f28038f506b202c4cabe6fb773a211e44260
+---
 
-[@concept-specifications](../../background/concept-specifications.md)
-
-[@implementing-concepts](../../background/implementing-concepts.md)
-
-[@challenges-concept](/design/concepts/Challenges/Challenges.md)
-
-# implement: Challenges concept
 # response:
 
 ```typescript
@@ -137,7 +134,7 @@ export default class ChallengesConcept {
     frequency: number,
     duration: number
   ): number {
-    return Math.round(level * frequency ** 1.5 * duration ** 2);
+    return Math.round(level * frequency * duration * 5);
   }
 
   /**

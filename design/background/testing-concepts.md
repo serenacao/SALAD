@@ -30,6 +30,11 @@ Deno.test("...", async () => {
 
   // ... tests
 
+  // example test
+   await t.step("[Action]: [Example action description]", async () => {
+    // test content
+  });
+
   await client.close();
 });
 ```
@@ -43,7 +48,10 @@ import { assertEquals } from "jsr:@std/assert"; // or any other utility from the
 ```
 
 # Legible testing
-
  - Each test should output what it is doing and the trace of any actions, to help with debugging and increasing confidence that the concept or action is doing what it says.
  - Principle tests and tests involving multiple actions should explain how it aligns with expectations.
  - For action tests, the output should explain how requirements are met and how effects are confirmed.
+ 
+ # MongoDB
+ - In MongoDB, an ObjectId is a 12-byte BSON type that serves as the default and primary key for documents within a collection. It is designed to uniquely identify documents across different machines and processes in a distributed system. In order to convert ObjectID into an ID, apply the function ".toString() as ID", for example, "objectID.toString() as ID".
+ 
