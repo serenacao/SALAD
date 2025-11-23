@@ -37,24 +37,10 @@ export const CreateRequest: Sync = ({
   ]),
 });
 
-export const CreateResponseSuccess: Sync = ({
-  request,
-  leader,
-  name,
-  privateGroup,
-  group,
-}) => ({
+export const CreateResponseSuccess: Sync = ({ request, group }) => ({
   when: actions(
     [Requesting.request, { path: "/createGroup" }, { request }],
-    [
-      Group.create,
-      {
-        leader,
-        name,
-        privateGroup,
-      },
-      { group },
-    ]
+    [Group.create, {}, { group }]
   ),
   then: actions([
     Requesting.respond,
@@ -109,20 +95,11 @@ export const MembershipRequest: Sync = ({
 
 export const MembershipResponseSuccess: Sync = ({
   request,
-  user,
-  group,
   membershipRequest,
 }) => ({
   when: actions(
     [Requesting.request, { path: "/requestMembership" }, { request }],
-    [
-      Group.request,
-      {
-        user,
-        group,
-      },
-      { membershipRequest },
-    ]
+    [Group.request, {}, { membershipRequest }]
   ),
   then: actions([
     Requesting.respond,
@@ -320,20 +297,10 @@ export const RemoveMemberRequest: Sync = ({
   ]),
 });
 
-export const RemoveMemberResponseSuccess: Sync = ({
-  request,
-  user,
-  group,
-}) => ({
+export const RemoveMemberResponseSuccess: Sync = ({ request }) => ({
   when: actions(
     [Requesting.request, { path: "/removeMember" }, { request }],
-    [
-      Group.removeMember,
-      {
-        user,
-        group,
-      },
-    ]
+    [Group.removeMember, {}, {}]
   ),
   then: actions([
     Requesting.respond,

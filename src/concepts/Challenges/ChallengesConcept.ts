@@ -1,6 +1,7 @@
 import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
+import { assert } from "node:console";
 
 // Declare collection prefix, use concept name
 const PREFIX = "Challenges" + ".";
@@ -12,17 +13,32 @@ type Challenge = ID;
 type Part = ID;
 type VerificationRequest = ID;
 type File = ID; // Assuming file is represented by an ID reference to a file storage concept
+export type AnaerobicInfo = {
+  _type: "AnaerobicInfo";
+  weight?: number; //kg
+  sets: number;
+  reps: number;
+};
+
+export type RepAerobicInfo = {
+  _type: "RepAerobicInfo";
+  repSpeed: number; //reps per minute
+  minutes: number;
+};
+
+export type DistanceAerobicInfo = {
+  _type: "DistanceAerobicInfo";
+  distanceSpeed: number; //km per hour
+  minutes: number;
+};
 
 /**
  * a set of Challenge Challenges with
  *   a User or Group Creator
  *   a string Exercise
- *   an optional number Reps
- *   an optional number Sets
- *   an optional number Weight (in kg)
- *   an optional number Minutes
- *   a number Frequency (days per week)
- *   a number Duration (weeks)
+ *   a RepAerobicInfo, DistanceAerobicInfo or AnaerobicInfo Info
+ *   a number DaysPerWeek (days per week)
+ *   a number Weeks (weeks)
  *   a number Level (1 to 3)
  *   a set of Users with
  *     a boolean Accepted
@@ -33,15 +49,12 @@ type File = ID; // Assuming file is represented by an ID reference to a file sto
  */
 interface ChallengeDoc {
   _id: Challenge;
-  creatorType: "User" | "Group"; // To distinguish between User and Group creators
-  creator: User | Group;
+
+  creator: User;
   exercise: string;
-  reps?: number;
-  sets?: number;
-  weight?: number; // in kg
-  minutes?: number;
-  frequency: number; // days per week
-  duration: number; // weeks
+  info: AnaerobicInfo | RepAerobicInfo | DistanceAerobicInfo;
+  daysPerWeek: number; // days per week
+  weeks: number; // weeks
   level: number; // 1 to 3
   // Renamed 'users' to 'participants' to better reflect accepted status
   participants: Array<{ user: User; accepted: boolean; completed: boolean }>;
@@ -90,115 +103,127 @@ export default class ChallengesConcept {
   verificationRequests: Collection<VerificationRequestDoc>;
 
   constructor(private readonly db: Db) {
-    this.challenges = this.db.collection(PREFIX + "challenges");
-    this.parts = this.db.collection(PREFIX + "parts");
+    this.challenges = this.db.collection(PREFIX + "Challenges");
+    this.parts = this.db.collection(PREFIX + "Parts");
     this.verificationRequests = this.db.collection(
-      PREFIX + "verificationRequests"
+      PREFIX + "VerificationRequests"
     );
   }
 
   /**
-   * Helper function to calculate points based on challenge parameters.
+   * Helper function to calculate points based on challenge info.
    * This is an arbitrary calculation based on the spec's hint.
    */
-  private calculatePoints(
+  private calculatePartPoints(
     level: number,
-    reps?: number,
-    sets?: number,
-    weight?: number,
-    minutes?: number
+    info: RepAerobicInfo | DistanceAerobicInfo | AnaerobicInfo
   ): number {
     let basePoints = level * 10;
-    if (reps) basePoints += reps * 0.1;
-    if (sets) basePoints += sets * 0.5;
-    if (weight) basePoints += weight * 0.2;
-    if (minutes) basePoints += minutes * 0.3;
-    return Math.round(basePoints);
+    if (info._type === "RepAerobicInfo") {
+      return (basePoints += this.calculateRepAerobicPartPoints(info));
+    } else if (info._type === "DistanceAerobicInfo") {
+      return (basePoints += this.calculateDistanceAerobicPartPoints(info));
+    } else {
+      return (basePoints += this.calculateAnaerobicPartPoints(info));
+    }
+  }
+
+  private calculateRepAerobicPartPoints(info: RepAerobicInfo): number {
+    const points = info.repSpeed * info.minutes;
+    return points;
+  }
+
+  private calculateDistanceAerobicPartPoints(
+    info: DistanceAerobicInfo
+  ): number {
+    const points = (info.distanceSpeed / 100) * info.minutes;
+    return points;
+  }
+
+  private calculateAnaerobicPartPoints(info: AnaerobicInfo): number {
+    let points = info.reps * info.sets;
+    if (info.weight) {
+      points *= info.weight / 10;
+    }
+    return points;
   }
 
   /**
-   * Helper function to calculate bonus points based on challenge parameters.
+   * Helper function to calculate bonus points based on challenge info.
    * This is an arbitrary calculation based on the spec's hint.
    */
   private calculateBonusPoints(
     level: number,
-    frequency: number,
-    duration: number
+    daysPerWeek: number,
+    weeks: number
   ): number {
-    return Math.round(level * frequency ** 1.5 * duration ** 2);
+    return Math.round(level * daysPerWeek ** 1.5 * weeks ** 2);
   }
 
   /**
-   * createChallenge(creator: User or Group, level: number, exercise: string, reps?: number, sets?: number, weight?: number, minutes?: number, frequency: number, duration: number): (challenge: Challenge)
+   * createChallenge(creator: User, level: number, exercise: string, reps?: number, sets?: number, weight?: number, minutes?: number, daysPerWeek: number, weeks: number): (challenge: Challenge)
    *
    * **requires** level is an integer in {1, 2, 3}, reps and sets are positive integers if they exist, weight and minutes are positive numbers if they exist
    *
-   * **effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, frequency and duration; creates a new Part for every week and day of the challenge with Completers set to an empty set
+   * **effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, daysPerWeek and weeks; creates a new Part for every week and day of the challenge with Completers set to an empty set
    */
   async createChallenge({
     creator,
-    creatorType, // Assuming creatorType is provided to distinguish User/Group
-    level,
     exercise,
-    reps,
-    sets,
-    weight,
-    minutes,
-    frequency,
-    duration,
+    level,
+    info,
+    daysPerWeek,
+    weeks,
   }: {
-    creator: User | Group;
-    creatorType: "User" | "Group";
+    creator: User;
     level: number;
     exercise: string;
-    reps?: number;
-    sets?: number;
-    weight?: number;
-    minutes?: number;
-    frequency: number;
-    duration: number;
+    info: RepAerobicInfo | DistanceAerobicInfo | AnaerobicInfo;
+    daysPerWeek: number;
+    weeks: number;
   }): Promise<{ challenge: Challenge } | { error: string }> {
     // Requires checks
     if (!Number.isInteger(level) || level < 1 || level > 3) {
       return { error: "Level must be an integer between 1 and 3." };
     }
-    if (reps !== undefined && (!Number.isInteger(reps) || reps <= 0)) {
-      return { error: "Reps must be a positive integer if provided." };
+    if (!Number.isInteger(daysPerWeek) || daysPerWeek <= 0) {
+      return { error: "DaysPerWeek must be a positive integer." };
     }
-    if (sets !== undefined && (!Number.isInteger(sets) || sets <= 0)) {
-      return { error: "Sets must be a positive integer if provided." };
+    if (!Number.isInteger(weeks) || weeks <= 0) {
+      return { error: "Weeks must be a positive integer." };
     }
-    if (weight !== undefined && (typeof weight !== "number" || weight <= 0)) {
-      return { error: "Weight must be a positive number if provided." };
-    }
-    if (
-      minutes !== undefined &&
-      (typeof minutes !== "number" || minutes <= 0)
-    ) {
-      return { error: "Minutes must be a positive number if provided." };
-    }
-    if (!Number.isInteger(frequency) || frequency <= 0) {
-      return { error: "Frequency must be a positive integer." };
-    }
-    if (!Number.isInteger(duration) || duration <= 0) {
-      return { error: "Duration must be a positive integer." };
+
+    for (const [key, value] of Object.entries(info)) {
+      if (key === "reps" || key === "sets") {
+        if (typeof value !== "number") {
+          return { error: "Reps and sets must be numbers." };
+        }
+
+        if (!Number.isInteger(value) || value <= 0) {
+          return { error: "Reps and sets must be positive integers." };
+        }
+      } else if (key !== "_type") {
+        if (typeof value !== "number") {
+          return { error: "Info fields must be numbers." };
+        }
+
+        if (value <= 0) {
+          return { error: "Info fields should be positive." };
+        }
+      }
     }
 
     const newChallengeId = freshID();
-    const points = this.calculatePoints(level, reps, sets, weight, minutes);
-    const bonusPoints = this.calculateBonusPoints(level, frequency, duration);
+    const points = this.calculatePartPoints(level, info);
+    const bonusPoints = this.calculateBonusPoints(level, daysPerWeek, weeks);
 
     const newChallenge: ChallengeDoc = {
       _id: newChallengeId,
-      creatorType,
       creator,
       exercise,
-      reps,
-      sets,
-      weight,
-      minutes,
-      frequency,
-      duration,
+      info,
+      daysPerWeek,
+      weeks,
       level,
       participants: [],
       points,
@@ -210,8 +235,8 @@ export default class ChallengesConcept {
 
     // Create parts for every week and day
     const partsToInsert = [];
-    for (let week = 1; week <= duration; week++) {
-      for (let day = 1; day <= frequency; day++) {
+    for (let week = 1; week <= weeks; week++) {
+      for (let day = 1; day <= daysPerWeek; day++) {
         partsToInsert.push({
           _id: freshID(),
           challenge: newChallengeId,
@@ -303,13 +328,13 @@ export default class ChallengesConcept {
   }
 
   /**
-   * inviteToChallenge(challenge: Challenge, users: Array of User): Empty
+   * inviteUsers(challenge: Challenge, users: Array of User): Empty
    *
    * **requires** challenge exists in Challenges
    *
    * **effect** adds every User in users to Users with Accepted and Completed set to False
    */
-  async inviteToChallenge({
+  async inviteUsers({
     challenge,
     users,
   }: {
@@ -372,13 +397,13 @@ export default class ChallengesConcept {
   }
 
   /**
-   * leaveChallenge(challenge: Challenge, user: User): Empty
+   * removeFromChallenge(challenge: Challenge, user: User): Empty
    *
    * **requires** challenge exists in Challenges, user is in Users for challenge
    *
    * **effect** deletes User from from Users and also from any Completers sets it was apart of
    */
-  async leaveChallenge({
+  async removeFromChallenge({
     challenge,
     user,
   }: {
@@ -530,31 +555,13 @@ export default class ChallengesConcept {
    * **effect** sets Approved to True for the associated VerificationRequest
    */
   async verify(
-    { part, requester }: { part: Part; requester: User } // Assuming approver is inferred or passed as part of requester context in a sync
+    { verificationRequest }: { verificationRequest: VerificationRequest } // Assuming approver is inferred or passed as part of requester context in a sync
   ): Promise<Empty | { error: string }> {
-    // Find the verification request. Assuming the 'requester' here is the one who *requested* verification
-    // and the *caller* of verify is the actual approver. This needs careful interpretation.
-    // The query should match on the 'approver' field in the VerificationRequest, not 'requester'.
-    // Let's assume 'user' is the one calling 'verify' and they must be the 'approver' in the request.
-    // The action `verify(part: Part, requester: User)` is underspecified on *who* is verifying.
-    // I'll assume the action is called by the `approver` from the VerificationRequest.
-    // So the action argument `requester` here refers to the original `requester` of the VR.
-    // I need an 'approver' argument for this action.
-    // Let's modify the signature to reflect the actual approver.
-    // The spec has `verify(part: Part, requester: User)`. This means the action identifies the *request*.
-    // And implies the *caller* is the approver.
-    // I will assume the 'requester' argument here uniquely identifies the verification request.
-    // And that the 'approver' is implicit from the context of *who* is calling this action.
-    // Since concepts are independent, I can't rely on `Session` or `UserAuthentication` here.
-    // So for this concept's internal logic, `verify` will simply find the request by `part` and `requester`
-    // and mark it approved, implying the action was triggered by the correct approver externally.
-
-    const verificationRequest = await this.verificationRequests.findOne({
-      part,
-      requester,
+    const requestDoc = await this.verificationRequests.findOne({
+      _id: verificationRequest,
       approved: false,
     });
-    if (!verificationRequest) {
+    if (!requestDoc) {
       return {
         error:
           "Pending verification request not found for this part and requester.",
@@ -562,7 +569,7 @@ export default class ChallengesConcept {
     }
 
     const challenge = await this.challenges.findOne({
-      _id: verificationRequest.challenge,
+      _id: requestDoc.challenge,
     });
     if (!challenge) {
       return { error: "Associated challenge not found." };
@@ -572,64 +579,20 @@ export default class ChallengesConcept {
     }
 
     await this.verificationRequests.updateOne(
-      { _id: verificationRequest._id },
+      { _id: requestDoc._id },
       { $set: { approved: true } }
     );
+
+    const part = requestDoc.part;
+
+    await this.completePart({ part, user: requestDoc.requester });
+
+    await this.parts.updateOne(
+      { _id: part },
+      { $addToSet: { completers: requestDoc.requester } }
+    );
+
     return {};
-  }
-
-  /**
-   * _isUserCreator(challenge: Challenge, user: User): Array<{ result: boolean }>
-   *
-   * **requires** challenge exists in Challenges
-   *
-   * **effect** returns whether or not user is Creator for Challenge
-   */
-  async _isUserCreator({
-    challenge,
-    user,
-  }: {
-    challenge: Challenge;
-    user: User;
-  }): Promise<Array<{ result: boolean }>> {
-    const existingChallenge = await this.challenges.findOne({ _id: challenge });
-    if (!existingChallenge) {
-      return [{ result: false }];
-    }
-    return [
-      {
-        result:
-          existingChallenge.creatorType === "User" &&
-          existingChallenge.creator === user,
-      },
-    ];
-  }
-
-  /**
-   * _isGroupCreator(challenge: Challenge, group: Group): Array<{ result: boolean }>
-   *
-   * **requires** challenge exists in Challenges
-   *
-   * **effect** returns whether or not group is Creator for Challenge
-   */
-  async _isGroupCreator({
-    challenge,
-    group,
-  }: {
-    challenge: Challenge;
-    group: Group;
-  }): Promise<Array<{ result: boolean }>> {
-    const existingChallenge = await this.challenges.findOne({ _id: challenge });
-    if (!existingChallenge) {
-      return [{ result: false }];
-    }
-    return [
-      {
-        result:
-          existingChallenge.creatorType === "Group" &&
-          existingChallenge.creator === group,
-      },
-    ];
   }
 
   /**
@@ -804,22 +767,19 @@ export default class ChallengesConcept {
   }
 
   /**
-   * _getChallengeDetails(challenge: Challenge): Array<{ exercise: string, level: number, frequency: number, duration: number, reps?: number, sets?: number, minutes?: number, weight?: number }>
+   * _getChallengeDetails(challenge: Challenge): Array<{ exercise: string, level: number, daysPerWeek: number, weeks: number, reps?: number, sets?: number, minutes?: number, weight?: number }>
    *
    * **requires** challenge exists in Challenges
    *
-   * **effect** returns Exercise, Level, Frequency, Duration, Reps, Sets, Minutes, Weight for this Challenge
+   * **effect** returns Exercise, Level, DaysPerWeek, Weeks, Reps, Sets, Minutes, Weight for this Challenge
    */
   async _getChallengeDetails({ challenge }: { challenge: Challenge }): Promise<
     Array<{
       exercise: string;
       level: number;
-      frequency: number;
-      duration: number;
-      reps?: number;
-      sets?: number;
-      minutes?: number;
-      weight?: number;
+      daysPerWeek: number;
+      weeks: number;
+      info: AnaerobicInfo | RepAerobicInfo | DistanceAerobicInfo;
     }>
   > {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
@@ -830,18 +790,15 @@ export default class ChallengesConcept {
       {
         exercise: existingChallenge.exercise,
         level: existingChallenge.level,
-        frequency: existingChallenge.frequency,
-        duration: existingChallenge.duration,
-        reps: existingChallenge.reps,
-        sets: existingChallenge.sets,
-        minutes: existingChallenge.minutes,
-        weight: existingChallenge.weight,
+        daysPerWeek: existingChallenge.daysPerWeek,
+        weeks: existingChallenge.weeks,
+        info: existingChallenge.info,
       },
     ];
   }
 
   /**
-   * _getCreator(challenge: Challenge): Array<{ creator: User | Group, creatorType: "User" | "Group" }>
+   * _getCreator(challenge: Challenge): Array<{ creator: User }>
    *
    * **requires** challenge exists in Challenges
    *
@@ -851,7 +808,7 @@ export default class ChallengesConcept {
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ creator: User | Group; creatorType: "User" | "Group" }>> {
+  }): Promise<Array<{ creator: User }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [];
@@ -859,7 +816,6 @@ export default class ChallengesConcept {
     return [
       {
         creator: existingChallenge.creator,
-        creatorType: existingChallenge.creatorType,
       },
     ];
   }
