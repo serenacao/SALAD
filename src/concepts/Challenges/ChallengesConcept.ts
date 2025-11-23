@@ -33,8 +33,8 @@ type File = ID; // Assuming file is represented by an ID reference to a file sto
  */
 interface ChallengeDoc {
   _id: Challenge;
-  creatorType: "User" | "Group"; // To distinguish between User and Group creators
-  creator: User | Group;
+
+  creator: User;
   exercise: string;
   reps?: number;
   sets?: number;
@@ -129,7 +129,7 @@ export default class ChallengesConcept {
   }
 
   /**
-   * createChallenge(creator: User or Group, level: number, exercise: string, reps?: number, sets?: number, weight?: number, minutes?: number, frequency: number, duration: number): (challenge: Challenge)
+   * createChallenge(creator: User, level: number, exercise: string, reps?: number, sets?: number, weight?: number, minutes?: number, frequency: number, duration: number): (challenge: Challenge)
    *
    * **requires** level is an integer in {1, 2, 3}, reps and sets are positive integers if they exist, weight and minutes are positive numbers if they exist
    *
@@ -137,7 +137,6 @@ export default class ChallengesConcept {
    */
   async createChallenge({
     creator,
-    creatorType, // Assuming creatorType is provided to distinguish User/Group
     level,
     exercise,
     reps,
@@ -147,8 +146,7 @@ export default class ChallengesConcept {
     frequency,
     duration,
   }: {
-    creator: User | Group;
-    creatorType: "User" | "Group";
+    creator: User;
     level: number;
     exercise: string;
     reps?: number;
@@ -190,7 +188,6 @@ export default class ChallengesConcept {
 
     const newChallenge: ChallengeDoc = {
       _id: newChallengeId,
-      creatorType,
       creator,
       exercise,
       reps,
@@ -303,13 +300,13 @@ export default class ChallengesConcept {
   }
 
   /**
-   * inviteToChallenge(challenge: Challenge, users: Array of User): Empty
+   * inviteUsers(challenge: Challenge, users: Array of User): Empty
    *
    * **requires** challenge exists in Challenges
    *
    * **effect** adds every User in users to Users with Accepted and Completed set to False
    */
-  async inviteToChallenge({
+  async inviteUsers({
     challenge,
     users,
   }: {
@@ -579,60 +576,6 @@ export default class ChallengesConcept {
   }
 
   /**
-   * _isUserCreator(challenge: Challenge, user: User): Array<{ result: boolean }>
-   *
-   * **requires** challenge exists in Challenges
-   *
-   * **effect** returns whether or not user is Creator for Challenge
-   */
-  async _isUserCreator({
-    challenge,
-    user,
-  }: {
-    challenge: Challenge;
-    user: User;
-  }): Promise<Array<{ result: boolean }>> {
-    const existingChallenge = await this.challenges.findOne({ _id: challenge });
-    if (!existingChallenge) {
-      return [{ result: false }];
-    }
-    return [
-      {
-        result:
-          existingChallenge.creatorType === "User" &&
-          existingChallenge.creator === user,
-      },
-    ];
-  }
-
-  /**
-   * _isGroupCreator(challenge: Challenge, group: Group): Array<{ result: boolean }>
-   *
-   * **requires** challenge exists in Challenges
-   *
-   * **effect** returns whether or not group is Creator for Challenge
-   */
-  async _isGroupCreator({
-    challenge,
-    group,
-  }: {
-    challenge: Challenge;
-    group: Group;
-  }): Promise<Array<{ result: boolean }>> {
-    const existingChallenge = await this.challenges.findOne({ _id: challenge });
-    if (!existingChallenge) {
-      return [{ result: false }];
-    }
-    return [
-      {
-        result:
-          existingChallenge.creatorType === "Group" &&
-          existingChallenge.creator === group,
-      },
-    ];
-  }
-
-  /**
    * _isParticipant(challenge: Challenge, user: User): Array<{ result: boolean }>
    *
    * **requires** challenge exists in Challenges
@@ -841,7 +784,7 @@ export default class ChallengesConcept {
   }
 
   /**
-   * _getCreator(challenge: Challenge): Array<{ creator: User | Group, creatorType: "User" | "Group" }>
+   * _getCreator(challenge: Challenge): Array<{ creator: User }>
    *
    * **requires** challenge exists in Challenges
    *
@@ -851,7 +794,7 @@ export default class ChallengesConcept {
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ creator: User | Group; creatorType: "User" | "Group" }>> {
+  }): Promise<Array<{ creator: User }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [];
@@ -859,7 +802,6 @@ export default class ChallengesConcept {
     return [
       {
         creator: existingChallenge.creator,
-        creatorType: existingChallenge.creatorType,
       },
     ];
   }

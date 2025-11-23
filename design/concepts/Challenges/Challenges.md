@@ -8,7 +8,7 @@
 
 a set of Challenge Challenges with
 
-&ensp; a User or Group Creator
+&ensp; a User Creator
 
 &ensp; a string Exercise
 
@@ -70,7 +70,7 @@ For each VerificationRequest, Requester is distinct from Approver
 
 **actions**
 
-createChallenge(creator: User or Group, level: number, exercise: string, reps?: number, sets?: number, weight?: number, minutes?: number, frequency: number, duration: number)
+createChallenge(creator: User, level: number, exercise: string, reps?: number, sets?: number, weight?: number, minutes?: number, frequency: number, duration: number)
 
 **requires** level is an integer in \{1, 2, 3\}, reps and sets are positive integers if they exist, weight and minutes are positive numbers if they exist
 
@@ -94,7 +94,7 @@ deleteChallenge(challenge: Challenge)
 
 **effect** deletes challenge from Challenges
 
-inviteToChallenge(challenge: Challenge, users: Array of User)
+inviteUsers(challenge: Challenge, users: Array of User)
 
 **requires** challenge exists in Challenges
 
@@ -131,18 +131,6 @@ verify(part: Part, requester: User)
 **effect** sets Approved to True for the associated VerificationRequest
 
 **queries**
-
-\_isUserCreator(challenge: Challenge, user: User): Boolean
-
-**requires** challenge exists in Challenges
-
-**effect** returns whether or not user is Creator for Challenge
-
-\_isGroupCreator(challenge: Challenge, group: Group): Boolean
-
-**requires** challenge exists in Challenges
-
-**effect** returns whether or not group is Creator for Challenge
 
 \_isParticipant(challenge: Challenge, user: User): Boolean
 
