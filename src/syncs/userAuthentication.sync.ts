@@ -187,7 +187,7 @@ export const UpdatePasswordResponseError: Sync = ({ request, error }) => ({
 
 // username update
 
-export const UpdateusernameRequest: Sync = ({
+export const UpdateUsernameRequest: Sync = ({
   request,
   session,
   user,
@@ -217,21 +217,21 @@ export const UpdateusernameRequest: Sync = ({
     frames = frames.filter(($) => $[actingUser] === $[user]);
     return frames;
   },
-  then: actions([UserAuthentication.updateusername, { user, newusername }]),
+  then: actions([UserAuthentication.updateUsername, { user, newusername }]),
 });
 
-export const UpdateusernameResponseSuccess: Sync = ({ request }) => ({
+export const UpdateUsernameResponseSuccess: Sync = ({ request }) => ({
   when: actions(
     [Requesting.request, { path: "/updateUsername" }, { request }],
-    [UserAuthentication.updateusername, {}, {}]
+    [UserAuthentication.updateUsername, {}, {}]
   ),
   then: actions([Requesting.respond, { request, status: "updated username" }]),
 });
 
-export const UpdateusernameResponseError: Sync = ({ request, error }) => ({
+export const UpdateUsernameResponseError: Sync = ({ request, error }) => ({
   when: actions(
     [Requesting.request, { path: "/updateUsername" }, { request }],
-    [UserAuthentication.updateusername, {}, { error }]
+    [UserAuthentication.updateUsername, {}, { error }]
   ),
   then: actions([Requesting.respond, { request, error }]),
 });

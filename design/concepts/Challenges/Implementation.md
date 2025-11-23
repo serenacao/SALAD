@@ -43,7 +43,7 @@ type File = ID; // Assuming file is represented by an ID reference to a file sto
  *   a number BonusPoints (upon completion of entire challenge)
  *   a boolean Open
  */
-interface ChallengeChallenges {
+interface ChallengeDoc {
   _id: Challenge;
   creatorType: "User" | "Group"; // To distinguish between User and Group creators
   creator: User | Group;
@@ -69,7 +69,7 @@ interface ChallengeChallenges {
  *   a number Week
  *   a set of User Completers
  */
-interface PartParts {
+interface PartDoc {
   _id: Part;
   challenge: Challenge;
   day: number;
@@ -86,7 +86,7 @@ interface PartParts {
  *   a file Evidence
  *   a boolean Approved
  */
-interface VerificationRequestVerificationRequests {
+interface VerificationRequestDoc {
   _id: VerificationRequest;
   requester: User;
   approver: User; // Changed from ApproverEmail to User for consistency
@@ -97,15 +97,15 @@ interface VerificationRequestVerificationRequests {
 }
 
 export default class ChallengesConcept {
-  challenges: Collection<ChallengeChallenges>;
-  parts: Collection<PartParts>;
-  verificationRequests: Collection<VerificationRequestVerificationRequests>;
+  challenges: Collection<ChallengeDoc>;
+  parts: Collection<PartDoc>;
+  verificationRequests: Collection<VerificationRequestDoc>;
 
   constructor(private readonly db: Db) {
     this.challenges = this.db.collection(PREFIX + "challenges");
     this.parts = this.db.collection(PREFIX + "parts");
     this.verificationRequests = this.db.collection(
-      PREFIX + "verificationRequests",
+      PREFIX + "verificationRequests"
     );
   }
 
@@ -118,7 +118,7 @@ export default class ChallengesConcept {
     reps?: number,
     sets?: number,
     weight?: number,
-    minutes?: number,
+    minutes?: number
   ): number {
     let basePoints = level * 10;
     if (reps) basePoints += reps * 0.1;
@@ -135,9 +135,9 @@ export default class ChallengesConcept {
   private calculateBonusPoints(
     level: number,
     frequency: number,
-    duration: number,
+    duration: number
   ): number {
-    return Math.round(level * frequency * duration * 5);
+    return Math.round(level * frequency ** 1.5 * duration ** 2);
   }
 
   /**
@@ -147,31 +147,29 @@ export default class ChallengesConcept {
    *
    * **effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, frequency and duration; creates a new Part for every week and day of the challenge with Completers set to an empty set
    */
-  async createChallenge(
-    {
-      creator,
-      creatorType, // Assuming creatorType is provided to distinguish User/Group
-      level,
-      exercise,
-      reps,
-      sets,
-      weight,
-      minutes,
-      frequency,
-      duration,
-    }: {
-      creator: User | Group;
-      creatorType: "User" | "Group";
-      level: number;
-      exercise: string;
-      reps?: number;
-      sets?: number;
-      weight?: number;
-      minutes?: number;
-      frequency: number;
-      duration: number;
-    },
-  ): Promise<{ challenge?: Challenge; error?: string }> {
+  async createChallenge({
+    creator,
+    creatorType, // Assuming creatorType is provided to distinguish User/Group
+    level,
+    exercise,
+    reps,
+    sets,
+    weight,
+    minutes,
+    frequency,
+    duration,
+  }: {
+    creator: User | Group;
+    creatorType: "User" | "Group";
+    level: number;
+    exercise: string;
+    reps?: number;
+    sets?: number;
+    weight?: number;
+    minutes?: number;
+    frequency: number;
+    duration: number;
+  }): Promise<{ challenge: Challenge } | { error: string }> {
     // Requires checks
     if (!Number.isInteger(level) || level < 1 || level > 3) {
       return { error: "Level must be an integer between 1 and 3." };
@@ -186,7 +184,8 @@ export default class ChallengesConcept {
       return { error: "Weight must be a positive number if provided." };
     }
     if (
-      minutes !== undefined && (typeof minutes !== "number" || minutes <= 0)
+      minutes !== undefined &&
+      (typeof minutes !== "number" || minutes <= 0)
     ) {
       return { error: "Minutes must be a positive number if provided." };
     }
@@ -201,7 +200,7 @@ export default class ChallengesConcept {
     const points = this.calculatePoints(level, reps, sets, weight, minutes);
     const bonusPoints = this.calculateBonusPoints(level, frequency, duration);
 
-    const newChallenge: ChallengeChallenges = {
+    const newChallenge: ChallengeDoc = {
       _id: newChallengeId,
       creatorType,
       creator,
@@ -248,9 +247,11 @@ export default class ChallengesConcept {
    *
    * **effect** sets Open for challenge to True if it was False, otherwise does nothing
    */
-  async openChallenge(
-    { challenge }: { challenge: Challenge },
-  ): Promise<Empty | { error: string }> {
+  async openChallenge({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Empty | { error: string }> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return { error: "Challenge not found." };
@@ -259,7 +260,7 @@ export default class ChallengesConcept {
     if (!existingChallenge.open) {
       await this.challenges.updateOne(
         { _id: challenge },
-        { $set: { open: true } },
+        { $set: { open: true } }
       );
     }
     return {};
@@ -272,9 +273,11 @@ export default class ChallengesConcept {
    *
    * **effect** sets Open for challenge to False if it was True, otherwise does nothing
    */
-  async closeChallenge(
-    { challenge }: { challenge: Challenge },
-  ): Promise<Empty | { error: string }> {
+  async closeChallenge({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Empty | { error: string }> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return { error: "Challenge not found." };
@@ -283,7 +286,7 @@ export default class ChallengesConcept {
     if (existingChallenge.open) {
       await this.challenges.updateOne(
         { _id: challenge },
-        { $set: { open: false } },
+        { $set: { open: false } }
       );
     }
     return {};
@@ -296,9 +299,11 @@ export default class ChallengesConcept {
    *
    * **effect** deletes challenge from Challenges
    */
-  async deleteChallenge(
-    { challenge }: { challenge: Challenge },
-  ): Promise<Empty | { error: string }> {
+  async deleteChallenge({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Empty | { error: string }> {
     const result = await this.challenges.deleteOne({ _id: challenge });
     if (result.deletedCount === 0) {
       return { error: "Challenge not found." };
@@ -316,24 +321,28 @@ export default class ChallengesConcept {
    *
    * **effect** adds every User in users to Users with Accepted and Completed set to False
    */
-  async inviteToChallenge(
-    { challenge, users }: { challenge: Challenge; users: User[] },
-  ): Promise<Empty | { error: string }> {
+  async inviteToChallenge({
+    challenge,
+    users,
+  }: {
+    challenge: Challenge;
+    users: User[];
+  }): Promise<Empty | { error: string }> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return { error: "Challenge not found." };
     }
 
     const newParticipants = users
-      .filter((user) =>
-        !existingChallenge.participants.some((p) => p.user === user)
+      .filter(
+        (user) => !existingChallenge.participants.some((p) => p.user === user)
       ) // Only add users not already in the list
       .map((user) => ({ user, accepted: false, completed: false }));
 
     if (newParticipants.length > 0) {
       await this.challenges.updateOne(
         { _id: challenge },
-        { $push: { participants: { $each: newParticipants } } },
+        { $push: { participants: { $each: newParticipants } } }
       );
     }
     return {};
@@ -346,16 +355,20 @@ export default class ChallengesConcept {
    *
    * **effect** sets Accepted for user to True if Accepted was False, otherwise does nothing
    */
-  async acceptChallenge(
-    { challenge, user }: { challenge: Challenge; user: User },
-  ): Promise<Empty | { error: string }> {
+  async acceptChallenge({
+    challenge,
+    user,
+  }: {
+    challenge: Challenge;
+    user: User;
+  }): Promise<Empty | { error: string }> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return { error: "Challenge not found." };
     }
 
     const participantIndex = existingChallenge.participants.findIndex(
-      (p) => p.user === user,
+      (p) => p.user === user
     );
     if (participantIndex === -1) {
       return { error: "User is not invited to this challenge." };
@@ -364,7 +377,7 @@ export default class ChallengesConcept {
     if (!existingChallenge.participants[participantIndex].accepted) {
       await this.challenges.updateOne(
         { _id: challenge, "participants.user": user },
-        { $set: { "participants.$.accepted": true } },
+        { $set: { "participants.$.accepted": true } }
       );
     }
     return {};
@@ -377,16 +390,20 @@ export default class ChallengesConcept {
    *
    * **effect** deletes User from from Users and also from any Completers sets it was apart of
    */
-  async leaveChallenge(
-    { challenge, user }: { challenge: Challenge; user: User },
-  ): Promise<Empty | { error: string }> {
+  async leaveChallenge({
+    challenge,
+    user,
+  }: {
+    challenge: Challenge;
+    user: User;
+  }): Promise<Empty | { error: string }> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return { error: "Challenge not found." };
     }
 
     const participantIndex = existingChallenge.participants.findIndex(
-      (p) => p.user === user,
+      (p) => p.user === user
     );
     if (participantIndex === -1) {
       return { error: "User is not a participant in this challenge." };
@@ -394,13 +411,13 @@ export default class ChallengesConcept {
 
     await this.challenges.updateOne(
       { _id: challenge },
-      { $pull: { participants: { user } } },
+      { $pull: { participants: { user } } }
     );
 
     // Also remove from any Completers sets in parts
     await this.parts.updateMany(
       { challenge, completers: user },
-      { $pull: { completers: user } },
+      { $pull: { completers: user } }
     );
     return {};
   }
@@ -412,9 +429,13 @@ export default class ChallengesConcept {
    *
    * **effect** adds user to the Completers set for part; if all parts associated with Challenge have user in its Completers set, marks Completed as True for this user in challenge
    */
-  async completePart(
-    { part, user }: { part: Part; user: User },
-  ): Promise<Empty | { error: string }> {
+  async completePart({
+    part,
+    user,
+  }: {
+    part: Part;
+    user: User;
+  }): Promise<Empty | { error: string }> {
     const existingPart = await this.parts.findOne({ _id: part });
     if (!existingPart) {
       return { error: "Part not found." };
@@ -432,19 +453,22 @@ export default class ChallengesConcept {
 
     const participant = challenge.participants.find((p) => p.user === user);
     if (!participant || !participant.accepted) {
-      return { error: "User is not an accepted participant in this challenge." };
+      return {
+        error: "User is not an accepted participant in this challenge.",
+      };
     }
 
     // Add user to completers set for this part if not already there
     if (!existingPart.completers.includes(user)) {
       await this.parts.updateOne(
         { _id: part },
-        { $addToSet: { completers: user } },
+        { $addToSet: { completers: user } }
       );
     }
 
     // Check if all parts for this challenge are completed by the user
-    const allChallengeParts = await this.parts.find({ challenge: challenge._id })
+    const allChallengeParts = await this.parts
+      .find({ challenge: challenge._id })
       .toArray();
     const userCompletedAllParts = allChallengeParts.every((p) =>
       p.completers.includes(user)
@@ -453,7 +477,7 @@ export default class ChallengesConcept {
     if (userCompletedAllParts && !participant.completed) {
       await this.challenges.updateOne(
         { _id: challenge._id, "participants.user": user },
-        { $set: { "participants.$.completed": true } },
+        { $set: { "participants.$.completed": true } }
       );
     }
     return {};
@@ -466,14 +490,17 @@ export default class ChallengesConcept {
    *
    * **effect** creates a new VerificationRequest with requester, approver, part, the Challenge associated with part, evidence and Approved set to False
    */
-  async createVerificationRequest(
-    { part, requester, approver, evidence }: {
-      part: Part;
-      requester: User;
-      approver: User;
-      evidence: File;
-    },
-  ): Promise<{ verificationRequest?: VerificationRequest; error?: string }> {
+  async createVerificationRequest({
+    part,
+    requester,
+    approver,
+    evidence,
+  }: {
+    part: Part;
+    requester: User;
+    approver: User;
+    evidence: File;
+  }): Promise<{ verificationRequest?: VerificationRequest; error?: string }> {
     const existingPart = await this.parts.findOne({ _id: part });
     if (!existingPart) {
       return { error: "Part not found." };
@@ -493,7 +520,7 @@ export default class ChallengesConcept {
     }
 
     const newVerificationRequestId = freshID();
-    const newRequest: VerificationRequestVerificationRequests = {
+    const newRequest: VerificationRequestDoc = {
       _id: newVerificationRequestId,
       requester,
       approver,
@@ -515,7 +542,7 @@ export default class ChallengesConcept {
    * **effect** sets Approved to True for the associated VerificationRequest
    */
   async verify(
-    { part, requester }: { part: Part; requester: User }, // Assuming approver is inferred or passed as part of requester context in a sync
+    { part, requester }: { part: Part; requester: User } // Assuming approver is inferred or passed as part of requester context in a sync
   ): Promise<Empty | { error: string }> {
     // Find the verification request. Assuming the 'requester' here is the one who *requested* verification
     // and the *caller* of verify is the actual approver. This needs careful interpretation.
@@ -540,7 +567,10 @@ export default class ChallengesConcept {
       approved: false,
     });
     if (!verificationRequest) {
-      return { error: "Pending verification request not found for this part and requester." };
+      return {
+        error:
+          "Pending verification request not found for this part and requester.",
+      };
     }
 
     const challenge = await this.challenges.findOne({
@@ -555,7 +585,7 @@ export default class ChallengesConcept {
 
     await this.verificationRequests.updateOne(
       { _id: verificationRequest._id },
-      { $set: { approved: true } },
+      { $set: { approved: true } }
     );
     return {};
   }
@@ -567,17 +597,24 @@ export default class ChallengesConcept {
    *
    * **effect** returns whether or not user is Creator for Challenge
    */
-  async _isUserCreator(
-    { challenge, user }: { challenge: Challenge; user: User },
-  ): Promise<Array<{ result: boolean }>> {
+  async _isUserCreator({
+    challenge,
+    user,
+  }: {
+    challenge: Challenge;
+    user: User;
+  }): Promise<Array<{ result: boolean }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [{ result: false }];
     }
-    return [{
-      result: existingChallenge.creatorType === "User" &&
-        existingChallenge.creator === user,
-    }];
+    return [
+      {
+        result:
+          existingChallenge.creatorType === "User" &&
+          existingChallenge.creator === user,
+      },
+    ];
   }
 
   /**
@@ -587,17 +624,24 @@ export default class ChallengesConcept {
    *
    * **effect** returns whether or not group is Creator for Challenge
    */
-  async _isGroupCreator(
-    { challenge, group }: { challenge: Challenge; group: Group },
-  ): Promise<Array<{ result: boolean }>> {
+  async _isGroupCreator({
+    challenge,
+    group,
+  }: {
+    challenge: Challenge;
+    group: Group;
+  }): Promise<Array<{ result: boolean }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [{ result: false }];
     }
-    return [{
-      result: existingChallenge.creatorType === "Group" &&
-        existingChallenge.creator === group,
-    }];
+    return [
+      {
+        result:
+          existingChallenge.creatorType === "Group" &&
+          existingChallenge.creator === group,
+      },
+    ];
   }
 
   /**
@@ -607,15 +651,19 @@ export default class ChallengesConcept {
    *
    * **effect** returns whether or not user is in Users for challenge and whether Accepted is true for user
    */
-  async _isParticipant(
-    { challenge, user }: { challenge: Challenge; user: User },
-  ): Promise<Array<{ result: boolean }>> {
+  async _isParticipant({
+    challenge,
+    user,
+  }: {
+    challenge: Challenge;
+    user: User;
+  }): Promise<Array<{ result: boolean }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [{ result: false }];
     }
-    const participant = existingChallenge.participants.find((p) =>
-      p.user === user && p.accepted
+    const participant = existingChallenge.participants.find(
+      (p) => p.user === user && p.accepted
     );
     return [{ result: !!participant }];
   }
@@ -627,9 +675,13 @@ export default class ChallengesConcept {
    *
    * **effect** returns whether or not user is in Users for challenge
    */
-  async _isInvited(
-    { challenge, user }: { challenge: Challenge; user: User },
-  ): Promise<Array<{ result: boolean }>> {
+  async _isInvited({
+    challenge,
+    user,
+  }: {
+    challenge: Challenge;
+    user: User;
+  }): Promise<Array<{ result: boolean }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [{ result: false }];
@@ -645,9 +697,11 @@ export default class ChallengesConcept {
    *
    * **effect** returns whether or not challenge has Open set to True
    */
-  async _isOpen(
-    { challenge }: { challenge: Challenge },
-  ): Promise<Array<{ result: boolean }>> {
+  async _isOpen({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ result: boolean }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [{ result: false }];
@@ -662,9 +716,13 @@ export default class ChallengesConcept {
    *
    * **effect** returns whether or not part has user in its Completers set
    */
-  async _isCompletedPart(
-    { part, user }: { part: Part; user: User },
-  ): Promise<Array<{ result: boolean }>> {
+  async _isCompletedPart({
+    part,
+    user,
+  }: {
+    part: Part;
+    user: User;
+  }): Promise<Array<{ result: boolean }>> {
     const existingPart = await this.parts.findOne({ _id: part });
     if (!existingPart) {
       return [{ result: false }];
@@ -679,14 +737,20 @@ export default class ChallengesConcept {
    *
    * **effect** returns Completed for user in challenge
    */
-  async _isCompletedChallenge(
-    { challenge, user }: { challenge: Challenge; user: User },
-  ): Promise<Array<{ result: boolean }>> {
+  async _isCompletedChallenge({
+    challenge,
+    user,
+  }: {
+    challenge: Challenge;
+    user: User;
+  }): Promise<Array<{ result: boolean }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [{ result: false }];
     }
-    const participant = existingChallenge.participants.find((p) => p.user === user);
+    const participant = existingChallenge.participants.find(
+      (p) => p.user === user
+    );
     return [{ result: !!participant && participant.completed }];
   }
 
@@ -697,9 +761,11 @@ export default class ChallengesConcept {
    *
    * **effect** returns every user in Users for this challenge where Accepted is True
    */
-  async _getParticipants(
-    { challenge }: { challenge: Challenge },
-  ): Promise<Array<{ user: User }>> {
+  async _getParticipants({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ user: User }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [];
@@ -716,9 +782,11 @@ export default class ChallengesConcept {
    *
    * **effect** returns every user in Users for this challenge
    */
-  async _getInvitees(
-    { challenge }: { challenge: Challenge },
-  ): Promise<Array<{ user: User }>> {
+  async _getInvitees({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ user: User }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [];
@@ -733,9 +801,11 @@ export default class ChallengesConcept {
    *
    * **effect** returns every user in Users for this challenge where Completed is True
    */
-  async _getCompleters(
-    { challenge }: { challenge: Challenge },
-  ): Promise<Array<{ user: User }>> {
+  async _getCompleters({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ user: User }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [];
@@ -752,36 +822,34 @@ export default class ChallengesConcept {
    *
    * **effect** returns Exercise, Level, Frequency, Duration, Reps, Sets, Minutes, Weight for this Challenge
    */
-  async _getChallengeDetails(
-    { challenge }: { challenge: Challenge },
-  ): Promise<
-    Array<
-      {
-        exercise: string;
-        level: number;
-        frequency: number;
-        duration: number;
-        reps?: number;
-        sets?: number;
-        minutes?: number;
-        weight?: number;
-      }
-    >
+  async _getChallengeDetails({ challenge }: { challenge: Challenge }): Promise<
+    Array<{
+      exercise: string;
+      level: number;
+      frequency: number;
+      duration: number;
+      reps?: number;
+      sets?: number;
+      minutes?: number;
+      weight?: number;
+    }>
   > {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [];
     }
-    return [{
-      exercise: existingChallenge.exercise,
-      level: existingChallenge.level,
-      frequency: existingChallenge.frequency,
-      duration: existingChallenge.duration,
-      reps: existingChallenge.reps,
-      sets: existingChallenge.sets,
-      minutes: existingChallenge.minutes,
-      weight: existingChallenge.weight,
-    }];
+    return [
+      {
+        exercise: existingChallenge.exercise,
+        level: existingChallenge.level,
+        frequency: existingChallenge.frequency,
+        duration: existingChallenge.duration,
+        reps: existingChallenge.reps,
+        sets: existingChallenge.sets,
+        minutes: existingChallenge.minutes,
+        weight: existingChallenge.weight,
+      },
+    ];
   }
 
   /**
@@ -791,17 +859,21 @@ export default class ChallengesConcept {
    *
    * **effect** returns Creator for challenge
    */
-  async _getCreator(
-    { challenge }: { challenge: Challenge },
-  ): Promise<Array<{ creator: User | Group; creatorType: "User" | "Group" }>> {
+  async _getCreator({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ creator: User | Group; creatorType: "User" | "Group" }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [];
     }
-    return [{
-      creator: existingChallenge.creator,
-      creatorType: existingChallenge.creatorType,
-    }];
+    return [
+      {
+        creator: existingChallenge.creator,
+        creatorType: existingChallenge.creatorType,
+      },
+    ];
   }
 
   /**
@@ -811,9 +883,11 @@ export default class ChallengesConcept {
    *
    * **effect** returns Points for the Challenge associated with part
    */
-  async _getPartPoints(
-    { part }: { part: Part },
-  ): Promise<Array<{ points: number }>> {
+  async _getPartPoints({
+    part,
+  }: {
+    part: Part;
+  }): Promise<Array<{ points: number }>> {
     const existingPart = await this.parts.findOne({ _id: part });
     if (!existingPart) {
       return [];
@@ -834,9 +908,11 @@ export default class ChallengesConcept {
    *
    * **effect** returns BonusPoints for challenge
    */
-  async _getChallengePoints(
-    { challenge }: { challenge: Challenge },
-  ): Promise<Array<{ bonusPoints: number }>> {
+  async _getChallengePoints({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ bonusPoints: number }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [];
@@ -851,13 +927,17 @@ export default class ChallengesConcept {
    *
    * **effect** returns every Challenge for which user is in Users and has Accepted as True
    */
-  async _getChallenges(
-    { user }: { user: User },
-  ): Promise<Array<{ challenge: Challenge }>> {
-    const challenges = await this.challenges.find({
-      "participants.user": user,
-      "participants.accepted": true,
-    }).toArray();
+  async _getChallenges({
+    user,
+  }: {
+    user: User;
+  }): Promise<Array<{ challenge: Challenge }>> {
+    const challenges = await this.challenges
+      .find({
+        "participants.user": user,
+        "participants.accepted": true,
+      })
+      .toArray();
     return challenges.map((c) => ({ challenge: c._id }));
   }
 
@@ -868,9 +948,11 @@ export default class ChallengesConcept {
    *
    * **effect** returns Challenge associated with Part
    */
-  async _getAssociatedChallenge(
-    { part }: { part: Part },
-  ): Promise<Array<{ challenge: Challenge }>> {
+  async _getAssociatedChallenge({
+    part,
+  }: {
+    part: Part;
+  }): Promise<Array<{ challenge: Challenge }>> {
     const existingPart = await this.parts.findOne({ _id: part });
     if (!existingPart) {
       return [];

@@ -3,13 +3,14 @@ import { assert } from "jsr:@std/assert/assert";
 import { assertEquals, assertExists, assertNotEquals } from "jsr:@std/assert";
 import { Collection, Db, ListSearchIndexesCursor } from "npm:mongodb";
 import { freshID } from "@utils/database.ts";
+import { startRequestingServer } from "../Requesting/RequestingConcept.ts";
 
 // Collection prefix to ensure namespace separation
 const PREFIX = "Group" + ".";
 
 export type User = ID;
 export type Group = ID;
-export type GroupRequest = ID;
+export type MembershipRequest = ID;
 
 /**
  * State: a set of Group Groups with
@@ -32,12 +33,12 @@ interface MembershipDoc {
 }
 
 /**
- * State: a set of GroupRequest GroupRequests
+ * State: a set of MembershipRequest MembershipRequests
  *  a User Requester
  *  a Group
  */
-interface GroupRequestDoc {
-  _id: GroupRequest;
+interface MembershipRequestDoc {
+  _id: MembershipRequest;
   requester: User;
   group: Group;
 }
@@ -48,12 +49,12 @@ interface GroupRequestDoc {
  */
 export default class GroupConcept {
   private groups: Collection<GroupDoc>;
-  private groupRequests: Collection<GroupRequestDoc>;
+  private membershipRequests: Collection<MembershipRequestDoc>;
   private memberships: Collection<MembershipDoc>;
 
   constructor(private readonly db: Db) {
     this.groups = this.db.collection(PREFIX + "Groups");
-    this.groupRequests = this.db.collection(PREFIX + "GroupRequests");
+    this.membershipRequests = this.db.collection(PREFIX + "MembershipRequests");
     this.memberships = this.db.collection(PREFIX + "Memberships");
   }
 
@@ -85,7 +86,7 @@ export default class GroupConcept {
   }: {
     user: User;
     group: Group;
-  }): Promise<{ groupRequest: GroupRequest } | { error: string }> {
+  }): Promise<{ membershipRequest: MembershipRequest } | { error: string }> {
     const matchingGroup = await this.groups.findOne({ _id: group });
     if (!matchingGroup) {
       return { error: "Group does not exist" };
@@ -98,22 +99,22 @@ export default class GroupConcept {
     if (matchingMembership) {
       return { error: "User is already a member of the group" };
     }
-    const groupRequestID = freshID();
-    await this.groupRequests.insertOne({
-      _id: groupRequestID,
+    const membershipRequestID = freshID();
+    await this.membershipRequests.insertOne({
+      _id: membershipRequestID,
       requester: user,
       group: group,
     });
-    return { groupRequest: groupRequestID };
+    return { membershipRequest: membershipRequestID };
   }
 
   async accept({
-    groupRequest,
+    membershipRequest,
   }: {
-    groupRequest: GroupRequest;
+    membershipRequest: MembershipRequest;
   }): Promise<Empty | { error: string }> {
-    const matchingRequest = await this.groupRequests.findOne({
-      _id: groupRequest,
+    const matchingRequest = await this.membershipRequests.findOne({
+      _id: membershipRequest,
     });
 
     if (!matchingRequest) {
@@ -127,30 +128,30 @@ export default class GroupConcept {
       group: group,
     });
 
-    await this.groupRequests.deleteOne({ _id: groupRequest });
+    await this.membershipRequests.deleteOne({ _id: membershipRequest });
 
     return {};
   }
 
   async deny({
-    groupRequest,
+    membershipRequest,
   }: {
-    groupRequest: GroupRequest;
+    membershipRequest: MembershipRequest;
   }): Promise<Empty | { error: string }> {
-    const matchingRequest = await this.groupRequests.findOne({
-      _id: groupRequest,
+    const matchingRequest = await this.membershipRequests.findOne({
+      _id: membershipRequest,
     });
 
     if (!matchingRequest) {
       return { error: "Request does not exist" };
     }
 
-    await this.groupRequests.deleteOne({ _id: groupRequest });
+    await this.membershipRequests.deleteOne({ _id: membershipRequest });
 
     return {};
   }
 
-  async leave({
+  async removeMember({
     user,
     group,
   }: {
@@ -174,7 +175,7 @@ export default class GroupConcept {
     return {};
   }
 
-  async delete({
+  async deleteGroup({
     group,
   }: {
     group: Group;
@@ -185,18 +186,31 @@ export default class GroupConcept {
     }
 
     await this.groups.deleteOne({ _id: group });
+    await this.memberships.deleteMany({ group: group });
+    await this.membershipRequests.deleteMany({ group: group });
     return {};
   }
 
-  async _getGroups({ user }: { user: User }): Promise<Array<{ group: Group }>> {
+  async _getGroups({
+    user,
+  }: {
+    user: User;
+  }): Promise<Array<{ group: Group; name: string; leader: User }>> {
     const membershipDocs = await this.memberships
       .find({ member: user })
       .toArray();
-    const groups: Array<{ group: Group }> = [];
-    membershipDocs.forEach((doc) => {
-      groups.push({ group: doc.group });
+    const output: Array<{ group: Group; name: string; leader: User }> = [];
+
+    const groupDocs = await Promise.all(
+      membershipDocs.map((doc) => this.groups.findOne({ _id: doc.group }))
+    );
+
+    groupDocs.forEach((doc) => {
+      if (doc) {
+        output.push({ group: doc._id, name: doc.name, leader: doc.leader });
+      }
     });
-    return groups;
+    return output;
   }
 
   async _getMembers({
@@ -226,6 +240,18 @@ export default class GroupConcept {
     return [{ leader: groupDoc.leader }];
   }
 
+  async _getName({
+    group,
+  }: {
+    group: Group;
+  }): Promise<Array<{ name: string }>> {
+    const groupDoc = await this.groups.findOne({ _id: group });
+    if (!groupDoc) {
+      return [];
+    }
+    return [{ name: groupDoc.name }];
+  }
+
   async _isPrivate({
     group,
   }: {
@@ -236,5 +262,83 @@ export default class GroupConcept {
       return [];
     }
     return [{ isPrivate: groupDoc.privateGroup }];
+  }
+
+  async _getPublicGroups({}: {}): Promise<
+    Array<{ group: Group; name: string; leader: User }>
+  > {
+    const groupDocs = await this.groups.find({ privateGroup: false }).toArray();
+
+    const groups: Array<{ group: Group; name: string; leader: User }> = [];
+
+    groupDocs.forEach((doc) => {
+      groups.push({ group: doc._id, name: doc.name, leader: doc.leader });
+    });
+
+    return groups;
+  }
+
+  async _getGroupRequests({
+    group,
+  }: {
+    group: Group;
+  }): Promise<
+    Array<{ membershipRequest: MembershipRequest; requester: User }>
+  > {
+    const requestDocs = await this.membershipRequests
+      .find({ group: group })
+      .toArray();
+
+    const requests: Array<{
+      membershipRequest: MembershipRequest;
+      requester: User;
+    }> = [];
+
+    requestDocs.forEach((doc) => {
+      requests.push({
+        membershipRequest: doc._id,
+        requester: doc.requester,
+      });
+    });
+
+    return requests;
+  }
+
+  async _getUserRequests({
+    user,
+  }: {
+    user: User;
+  }): Promise<Array<{ membershipRequest: MembershipRequest; group: Group }>> {
+    const requestDocs = await this.membershipRequests
+      .find({ requester: user })
+      .toArray();
+
+    const requests: Array<{
+      membershipRequest: MembershipRequest;
+      group: Group;
+    }> = [];
+
+    requestDocs.forEach((doc) => {
+      requests.push({
+        membershipRequest: doc._id,
+        group: doc.group,
+      });
+    });
+
+    return requests;
+  }
+
+  async _getRequestDetails({
+    membershipRequest,
+  }: {
+    membershipRequest: MembershipRequest;
+  }): Promise<Array<{ user: User; group: Group }>> {
+    const requestDoc = await this.membershipRequests.findOne({
+      _id: membershipRequest,
+    });
+    if (!requestDoc) {
+      return [];
+    }
+    return [{ user: requestDoc.requester, group: requestDoc.group }];
   }
 }
