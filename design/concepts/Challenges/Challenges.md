@@ -132,17 +132,17 @@ completePart(part: Part, user: User)
 
 **effect** adds user to the Completers set for part; if all parts associated with Challenge have user in its Completers set, marks Completed as True for this user in challenge
 
-createVerificationRequest(part: Part, requester: User, approver: User, evidence: File)
+createVerificationRequest(part: Part, requester: User, approver: User, evidence: File): verificationRequest
 
 **requires** part exists in Parts; Challenge associated with part has Open set to True
 
 **effect** creates a new VerificationRequest with requester, approver, part, the Challenge associated with part, evidence and Approved set to False
 
-verify(part: Part, requester: User)
+verify(verificationRequest: VerificationRequest)
 
-**requires** there is a VerificationRequest associated with part and requester; Challenge associated with part has Open set to True
+**requires** verificationRequest is in VerificationRequests; Challenge associated with Part of verificationRequest has Open set to True
 
-**effect** sets Approved to True for the associated VerificationRequest
+**effect** sets Approved to True for the associated VerificationRequest and adds User to Completers for associated Part
 
 **queries**
 

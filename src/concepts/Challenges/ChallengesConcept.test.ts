@@ -73,7 +73,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
 
       // Verify parts were created
       const partsCount = await db
-        .collection("Challenges.parts")
+        .collection("Challenges.Parts")
         .countDocuments({ challenge: challengeId });
       assertEquals(partsCount, 3 * 2, "Should create 3*2 = 6 parts."); // daysPerWeek * weeks = 3 * 2
 
@@ -440,7 +440,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
   await t.step("[Action: completePart] - User completes a part", async () => {
     console.log(`\n--- Test: completePart ---`);
     const allParts = await db
-      .collection("Challenges.parts")
+      .collection("Challenges.Parts")
       .find({ challenge: challenge1Id })
       .toArray();
     const dummy = allParts[0]._id;
@@ -484,7 +484,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
     async () => {
       console.log(`\n--- Test: completePart (all parts completed) ---`);
       const allParts = await db
-        .collection("Challenges.parts")
+        .collection("Challenges.Parts")
         .find({ challenge: challenge1Id })
         .toArray();
 
@@ -531,7 +531,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
       console.log(`\n--- Test: completePart (challenge not open) ---`);
       await concept.closeChallenge({ challenge: challenge1Id });
       const allParts = await db
-        .collection("Challenges.parts")
+        .collection("Challenges.Parts")
         .find({ challenge: challenge1Id })
         .toArray();
       const firstPartId = allParts[0]._id; // Use an existing part
@@ -560,7 +560,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
     async () => {
       console.log(`\n--- Test: completePart (user not accepted) ---`);
       const allParts = await db
-        .collection("Challenges.parts")
+        .collection("Challenges.Parts")
         .find({ challenge: challenge1Id })
         .toArray();
       const firstPartId = allParts[0]._id; // Use an existing part
@@ -589,7 +589,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
     async () => {
       console.log(`\n--- Test: createVerificationRequest ---`);
       const allParts = await db
-        .collection("Challenges.parts")
+        .collection("Challenges.Parts")
         .find({ challenge: challenge1Id })
         .toArray();
       const partToVerifyId = allParts[0]._id;
@@ -609,7 +609,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
       console.log(`Created verification request with ID: ${vrId}`);
 
       const vrDoc = await db
-        .collection("Challenges.verificationRequests")
+        .collection("Challenges.VerificationRequests")
         .findOne({ _id: vrId });
       assertExists(vrDoc, "Verification request document should exist.");
       assertEquals(vrDoc?.requester, userB, "Requester should be User B.");
@@ -630,7 +630,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
         `\n--- Test: createVerificationRequest (requester = approver) ---`
       );
       const allParts = await db
-        .collection("Challenges.parts")
+        .collection("Challenges.Parts")
         .find({ challenge: challenge1Id })
         .toArray();
       const partToVerifyId = allParts[0]._id;
@@ -659,18 +659,18 @@ Deno.test("Challenges Concept Tests", async (t) => {
     "[Action: verify] - Approve a verification request",
     async () => {
       console.log(`\n--- Test: verify ---`);
-      const allParts = await db
-        .collection("Challenges.parts")
-        .find({ challenge: challenge1Id })
+      const allVerificationRequests = await db
+        .collection("Challenges.VerificationRequests")
+        .find({ requester: userB, approved: false })
         .toArray();
-      const partToVerifyId = allParts[0]._id; // The part for which VR was created by userB for userA
+      const verificationRequestID =
+        allVerificationRequests[0]._id.toString() as ID; // The part for which VR was created by userB for userA
 
       // Assume userA is the one triggering this action implicitly or explicitly.
-      // The spec's `verify(part: Part, requester: User)` implies `requester` is the original requester.
+      // The spec's `verify(verificationRequest)` implies `requester` is the original requester.
       // We confirm this logic.
       const result = await concept.verify({
-        part: partToVerifyId.toString() as ID,
-        requester: userB,
+        verificationRequest: verificationRequestID,
       });
       assertEquals(
         result,
@@ -680,10 +680,9 @@ Deno.test("Challenges Concept Tests", async (t) => {
       console.log(`Action result: ${JSON.stringify(result)}`);
 
       const vrDoc = await db
-        .collection("Challenges.verificationRequests")
+        .collection("Challenges.VerificationRequests")
         .findOne({
-          part: partToVerifyId,
-          requester: userB,
+          _id: verificationRequestID,
         });
       assertExists(vrDoc, "Verification request document should still exist.");
       assertEquals(vrDoc?.approved, true, "Request should now be approved.");
@@ -695,16 +694,16 @@ Deno.test("Challenges Concept Tests", async (t) => {
     "[Action: verify] - Try to verify non-existent or already approved request (requires check)",
     async () => {
       console.log(`\n--- Test: verify (non-existent/approved) ---`);
-      const allParts = await db
-        .collection("Challenges.parts")
-        .find({ challenge: challenge1Id })
+      const allVerificationRequests = await db
+        .collection("Challenges.VerificationRequests")
+        .find({ requester: userB, approved: true })
         .toArray();
-      const partToVerifyId = allParts[0]._id;
+      const verificationRequestID =
+        allVerificationRequests[0]._id.toString() as ID; // The part for which VR was created by userB for userA
 
       // Already approved request
       const alreadyApprovedResult = await concept.verify({
-        part: partToVerifyId.toString() as ID,
-        requester: userB,
+        verificationRequest: verificationRequestID,
       });
       assertEquals(
         alreadyApprovedResult,
@@ -722,8 +721,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
 
       // Non-existent request
       const nonExistentResult = await concept.verify({
-        part: partToVerifyId.toString() as ID,
-        requester: "user:NonExistent" as ID,
+        verificationRequest: freshID(),
       });
       assertEquals(
         nonExistentResult,
@@ -827,7 +825,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
 
       // 5. User B completes the single part of the challenge.
       const principleParts = await db
-        .collection("Challenges.parts")
+        .collection("Challenges.Parts")
         .find({ challenge: principleChallengeId })
         .toArray();
       assertEquals(
@@ -878,7 +876,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
         `7. User B created verification request ${principleVrId} for User A.`
       );
       const initialVrState = await db
-        .collection("Challenges.verificationRequests")
+        .collection("Challenges.VerificationRequests")
         .findOne({ _id: principleVrId });
       assertEquals(
         initialVrState?.approved,
@@ -888,12 +886,11 @@ Deno.test("Challenges Concept Tests", async (t) => {
 
       // 8. User A verifies the request.
       await concept.verify({
-        part: principlePartId.toString() as ID,
-        requester: userB,
+        verificationRequest: principleVrId,
       });
       console.log(`8. User A verified the request.`);
       const finalVrState = await db
-        .collection("Challenges.verificationRequests")
+        .collection("Challenges.VerificationRequests")
         .findOne({ _id: principleVrId });
       assertEquals(
         finalVrState?.approved,
@@ -958,7 +955,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
         .challenge;
       await concept.openChallenge({ challenge: challengeToDeleteId });
       const partsForDeleteChallenge = await db
-        .collection("Challenges.parts")
+        .collection("Challenges.Parts")
         .find({ challenge: challengeToDeleteId })
         .toArray();
       const partToDeleteId = partsForDeleteChallenge[0]._id;
@@ -973,20 +970,20 @@ Deno.test("Challenges Concept Tests", async (t) => {
       // Ensure challenge and associated data exists
       assertExists(
         await db
-          .collection("Challenges.challenges")
+          .collection("Challenges.Challenges")
           .findOne({ _id: challengeToDeleteId }),
         "Challenge should exist before deletion."
       );
       assertEquals(
         await db
-          .collection("Challenges.parts")
+          .collection("Challenges.Parts")
           .countDocuments({ challenge: challengeToDeleteId }),
         1,
         "Part should exist before deletion."
       );
       assertEquals(
         await db
-          .collection("Challenges.verificationRequests")
+          .collection("Challenges.VerificationRequests")
           .countDocuments({ challenge: challengeToDeleteId }),
         1,
         "Verification request should exist before deletion."
@@ -1005,21 +1002,21 @@ Deno.test("Challenges Concept Tests", async (t) => {
       // Verify effects: Challenge, parts, and verification requests are deleted
       assertEquals(
         await db
-          .collection("Challenges.challenges")
+          .collection("Challenges.Challenges")
           .findOne({ _id: challengeToDeleteId }),
         null,
         "Challenge should be deleted."
       );
       assertEquals(
         await db
-          .collection("Challenges.parts")
+          .collection("Challenges.Parts")
           .countDocuments({ challenge: challengeToDeleteId }),
         0,
         "Associated part should be deleted."
       );
       assertEquals(
         await db
-          .collection("Challenges.verificationRequests")
+          .collection("Challenges.VerificationRequests")
           .countDocuments({ challenge: challengeToDeleteId }),
         0,
         "Associated verification request should be deleted."

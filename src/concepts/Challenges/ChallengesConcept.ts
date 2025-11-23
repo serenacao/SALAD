@@ -103,10 +103,10 @@ export default class ChallengesConcept {
   verificationRequests: Collection<VerificationRequestDoc>;
 
   constructor(private readonly db: Db) {
-    this.challenges = this.db.collection(PREFIX + "challenges");
-    this.parts = this.db.collection(PREFIX + "parts");
+    this.challenges = this.db.collection(PREFIX + "Challenges");
+    this.parts = this.db.collection(PREFIX + "Parts");
     this.verificationRequests = this.db.collection(
-      PREFIX + "verificationRequests"
+      PREFIX + "VerificationRequests"
     );
   }
 
@@ -555,31 +555,13 @@ export default class ChallengesConcept {
    * **effect** sets Approved to True for the associated VerificationRequest
    */
   async verify(
-    { part, requester }: { part: Part; requester: User } // Assuming approver is inferred or passed as part of requester context in a sync
+    { verificationRequest }: { verificationRequest: VerificationRequest } // Assuming approver is inferred or passed as part of requester context in a sync
   ): Promise<Empty | { error: string }> {
-    // Find the verification request. Assuming the 'requester' here is the one who *requested* verification
-    // and the *caller* of verify is the actual approver. This needs careful interpretation.
-    // The query should match on the 'approver' field in the VerificationRequest, not 'requester'.
-    // Let's assume 'user' is the one calling 'verify' and they must be the 'approver' in the request.
-    // The action `verify(part: Part, requester: User)` is underspecified on *who* is verifying.
-    // I'll assume the action is called by the `approver` from the VerificationRequest.
-    // So the action argument `requester` here refers to the original `requester` of the VR.
-    // I need an 'approver' argument for this action.
-    // Let's modify the signature to reflect the actual approver.
-    // The spec has `verify(part: Part, requester: User)`. This means the action identifies the *request*.
-    // And implies the *caller* is the approver.
-    // I will assume the 'requester' argument here uniquely identifies the verification request.
-    // And that the 'approver' is implicit from the context of *who* is calling this action.
-    // Since concepts are independent, I can't rely on `Session` or `UserAuthentication` here.
-    // So for this concept's internal logic, `verify` will simply find the request by `part` and `requester`
-    // and mark it approved, implying the action was triggered by the correct approver externally.
-
-    const verificationRequest = await this.verificationRequests.findOne({
-      part,
-      requester,
+    const requestDoc = await this.verificationRequests.findOne({
+      _id: verificationRequest,
       approved: false,
     });
-    if (!verificationRequest) {
+    if (!requestDoc) {
       return {
         error:
           "Pending verification request not found for this part and requester.",
@@ -587,7 +569,7 @@ export default class ChallengesConcept {
     }
 
     const challenge = await this.challenges.findOne({
-      _id: verificationRequest.challenge,
+      _id: requestDoc.challenge,
     });
     if (!challenge) {
       return { error: "Associated challenge not found." };
@@ -597,9 +579,19 @@ export default class ChallengesConcept {
     }
 
     await this.verificationRequests.updateOne(
-      { _id: verificationRequest._id },
+      { _id: requestDoc._id },
       { $set: { approved: true } }
     );
+
+    const part = requestDoc.part;
+
+    await this.completePart({ part, user: requestDoc.requester });
+
+    await this.parts.updateOne(
+      { _id: part },
+      { $addToSet: { completers: requestDoc.requester } }
+    );
+
     return {};
   }
 
