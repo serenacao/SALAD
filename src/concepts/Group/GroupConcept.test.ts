@@ -140,8 +140,8 @@ Deno.test("Action: deny", async () => {
   }
 });
 
-Deno.test("Action: leave", async () => {
-  console.log("\n🧪 TEST CASE 3: leave");
+Deno.test("Action: removeMember", async () => {
+  console.log("\n🧪 TEST CASE 3: removeMember");
   console.log("==================================");
   const [db, client] = await testDb();
   try {
@@ -170,7 +170,7 @@ Deno.test("Action: leave", async () => {
       membershipRequest: membershipRequest.membershipRequest,
     });
 
-    await groupConcept.leave({ user: user, group: groupObject.group });
+    await groupConcept.removeMember({ user: user, group: groupObject.group });
 
     const members = await groupConcept._getMembers({
       group: groupObject.group,
