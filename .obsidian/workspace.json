@@ -189,14 +189,14 @@
     "context/design/concepts/Challenges/Testing.md/steps/_.eb4d1820.md",
     "context/design/concepts/Challenges/Testing.md/steps/_.db39d951.md",
     "context/design/concepts/Challenges/Testing.md/steps/_.ae61325b.md",
-    "context/design/concepts/Challenges/Testing.md/steps/_.7cc2608e.md",
     "context/design/concepts/Challenges/Testing.md/steps/_.62ed2634.md",
+    "context/design/concepts/Challenges/Testing.md/steps/_.7cc2608e.md",
     "context/design/concepts/Challenges/Testing.md/steps/_.5da05fda.md",
-    "context/design/concepts/Challenges/Testing.md/steps/_.534e93ad.md",
     "context/design/concepts/Challenges/Testing.md/steps/_.451871e6.md",
+    "context/design/concepts/Challenges/Testing.md/steps/_.534e93ad.md",
     "context/design/concepts/Challenges/Testing.md/steps/_.3eb68380.md",
     "context/design/concepts/Challenges/Testing.md/steps/_.3a59af90.md",
-    "context/design/concepts/Challenges/Testing.md/steps/_.2086d81d.md",
+    "context/design/concepts/Challenges/Testing.md/steps/_.331f5a1f.md",
     "context/design/concepts/Challenges/Testing.md/steps",
     "src/syncs/group.sync.ts",
     "src/concepts/Group/GroupConcept.test.ts",
@@ -205,7 +205,6 @@
     "node_modules/sanitize-filename-ts/package.json",
     "node_modules/sanitize-filename-ts/build",
     "node_modules/sanitize-filename-ts",
-    "node_modules/micromark-extension-frontmatter/dev/lib/to-matters.js",
-    "node_modules/micromark-extension-frontmatter/dev/lib/to-matters.d.ts"
+    "node_modules/micromark-extension-frontmatter/dev/lib/to-matters.js"
   ]
 }
