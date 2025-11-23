@@ -76,7 +76,7 @@ export default class UserAuthenticationConcept {
     }
   }
 
-  async updateusername({
+  async updateUsername({
     user,
     newusername,
   }: {
