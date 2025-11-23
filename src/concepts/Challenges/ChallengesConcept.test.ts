@@ -1,6 +1,11 @@
 import { assertEquals, assertNotEquals, assertExists } from "jsr:@std/assert";
 import { testDb, freshID } from "@utils/database.ts";
 import ChallengesConcept from "@concepts/Challenges/ChallengesConcept.ts";
+import {
+  AnaerobicInfo,
+  RepAerobicInfo,
+  DistanceAerobicInfo,
+} from "@concepts/Challenges/ChallengesConcept.ts";
 import { ID } from "@utils/types.ts";
 
 Deno.test("Challenges Concept Tests", async (t) => {
@@ -22,10 +27,9 @@ Deno.test("Challenges Concept Tests", async (t) => {
         creator: userA,
         level: 1,
         exercise: "Pushups",
-        reps: 10,
-        sets: 3,
-        frequency: 3,
-        duration: 2,
+        info: { _type: "AnaerobicInfo", reps: 10, sets: 3 },
+        daysPerWeek: 3,
+        weeks: 2,
       });
 
       console.log(`Action result: ${JSON.stringify(result)}`);
@@ -71,7 +75,7 @@ Deno.test("Challenges Concept Tests", async (t) => {
       const partsCount = await db
         .collection("Challenges.parts")
         .countDocuments({ challenge: challengeId });
-      assertEquals(partsCount, 3 * 2, "Should create 3*2 = 6 parts."); // frequency * duration = 3 * 2
+      assertEquals(partsCount, 3 * 2, "Should create 3*2 = 6 parts."); // daysPerWeek * weeks = 3 * 2
 
       console.log(
         `Confirmed challenge properties, initial state, and part creation.`
@@ -87,8 +91,9 @@ Deno.test("Challenges Concept Tests", async (t) => {
         creator: userA,
         level: 4,
         exercise: "Invalid",
-        frequency: 1,
-        duration: 1,
+        info: { _type: "AnaerobicInfo", weight: 10, reps: 3, sets: 4 },
+        daysPerWeek: 1,
+        weeks: 1,
       });
       assertEquals(
         invalidLevel,
@@ -101,13 +106,13 @@ Deno.test("Challenges Concept Tests", async (t) => {
         creator: userA,
         level: 1,
         exercise: "Invalid",
-        reps: -5,
-        frequency: 1,
-        duration: 1,
+        info: { _type: "AnaerobicInfo", weight: 10, reps: -1, sets: 4 },
+        daysPerWeek: 1,
+        weeks: 1,
       });
       assertEquals(
         invalidReps,
-        { error: "Reps must be a positive integer if provided." },
+        { error: "Reps and sets must be positive integers." },
         "Should reject invalid reps."
       );
       console.log(`Rejected invalid reps: ${JSON.stringify(invalidReps)}`);
@@ -116,13 +121,13 @@ Deno.test("Challenges Concept Tests", async (t) => {
         creator: userA,
         level: 1,
         exercise: "Invalid",
-        weight: -10,
-        frequency: 1,
-        duration: 1,
+        info: { _type: "AnaerobicInfo", weight: -10, reps: 1, sets: 4 },
+        daysPerWeek: 1,
+        weeks: 1,
       });
       assertEquals(
         invalidWeight,
-        { error: "Weight must be a positive number if provided." },
+        { error: "Info fields should be positive." },
         "Should reject invalid weight."
       );
       console.log(`Rejected invalid weight: ${JSON.stringify(invalidWeight)}`);
@@ -138,10 +143,9 @@ Deno.test("Challenges Concept Tests", async (t) => {
     creator: userA,
     level: 2,
     exercise: "Squats",
-    reps: 10,
-    sets: 3,
-    frequency: 2,
-    duration: 1,
+    info: { _type: "AnaerobicInfo", reps: 10, sets: 3 },
+    daysPerWeek: 2,
+    weeks: 1,
   });
   const challenge1Id = (createRes as { challenge: ID }).challenge;
 
@@ -373,46 +377,51 @@ Deno.test("Challenges Concept Tests", async (t) => {
     }
   );
 
-  // --- Action: leaveChallenge ---
-  await t.step("[Action: leaveChallenge] - User leaves challenge", async () => {
-    console.log(`\n--- Test: leaveChallenge ---`);
-    const result = await concept.leaveChallenge({
-      challenge: challenge1Id,
-      user: userC,
-    });
-    assertEquals(
-      result,
-      {},
-      "Should return empty object for successful operation."
-    );
-    console.log(`Action result: ${JSON.stringify(result)}`);
+  // --- Action: removeFromChallenge ---
+  await t.step(
+    "[Action: removeFromChallenge] - User removeFroms challenge",
+    async () => {
+      console.log(`\n--- Test: removeFromChallenge ---`);
+      const result = await concept.removeFromChallenge({
+        challenge: challenge1Id,
+        user: userC,
+      });
+      assertEquals(
+        result,
+        {},
+        "Should return empty object for successful operation."
+      );
+      console.log(`Action result: ${JSON.stringify(result)}`);
 
-    const invitees = await concept._getInvitees({ challenge: challenge1Id });
-    assertEquals(
-      invitees.map((i) => i.user),
-      [userB],
-      "User C should be removed from invitees."
-    );
+      const invitees = await concept._getInvitees({ challenge: challenge1Id });
+      assertEquals(
+        invitees.map((i) => i.user),
+        [userB],
+        "User C should be removed from invitees."
+      );
 
-    // userB remains as participant
-    const isParticipantB = await concept._isParticipant({
-      challenge: challenge1Id,
-      user: userB,
-    });
-    assertEquals(
-      isParticipantB[0].result,
-      true,
-      "User B should still be an accepted participant."
-    );
-    console.log(`Confirmed user C left the challenge.`);
-  });
+      // userB remains as participant
+      const isParticipantB = await concept._isParticipant({
+        challenge: challenge1Id,
+        user: userB,
+      });
+      assertEquals(
+        isParticipantB[0].result,
+        true,
+        "User B should still be an accepted participant."
+      );
+      console.log(`Confirmed user C left the challenge.`);
+    }
+  );
 
   await t.step(
-    "[Action: leaveChallenge] - User not participating (requires check)",
+    "[Action: removeFromChallenge] - User not participating (requires check)",
     async () => {
-      console.log(`\n--- Test: leaveChallenge (user not participating) ---`);
+      console.log(
+        `\n--- Test: removeFromChallenge (user not participating) ---`
+      );
       const nonParticipantUser = "user:Eve" as ID;
-      const result = await concept.leaveChallenge({
+      const result = await concept.removeFromChallenge({
         challenge: challenge1Id,
         user: nonParticipantUser,
       });
@@ -745,8 +754,9 @@ Deno.test("Challenges Concept Tests", async (t) => {
         creator: userA,
         level: 1,
         exercise: "Jump Ropes",
-        frequency: 1,
-        duration: 1, // Simple 1-part challenge for principle
+        daysPerWeek: 1,
+        weeks: 1, // Simple 1-part challenge for principle
+        info: { _type: "RepAerobicInfo", repSpeed: 60, minutes: 20 },
       });
       const principleChallengeId = (challengeRes as { challenge: ID })
         .challenge;
@@ -905,8 +915,8 @@ Deno.test("Challenges Concept Tests", async (t) => {
         `9. User C attempted to complete part but failed as expected.`
       );
 
-      // 10. User B leaves the challenge.
-      await concept.leaveChallenge({
+      // 10. User B removeFroms the challenge.
+      await concept.removeFromChallenge({
         challenge: principleChallengeId,
         user: userB,
       });
@@ -937,9 +947,10 @@ Deno.test("Challenges Concept Tests", async (t) => {
       const createResToDelete = await concept.createChallenge({
         creator: userA,
         level: 1,
+        info: { _type: "DistanceAerobicInfo", distanceSpeed: 60, minutes: 30 },
         exercise: "Cleanup",
-        frequency: 1,
-        duration: 1,
+        daysPerWeek: 1,
+        weeks: 1,
       });
 
       console.log("\nCreated a new challenge", createResToDelete);

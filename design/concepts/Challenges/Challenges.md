@@ -12,17 +12,31 @@ a set of Challenge Challenges with
 
 &ensp; a string Exercise
 
-&ensp; an optional number Reps
+&ensp; a string ExerciseType (Anaerobic, RepAerobic or DistanceAerobic)
 
-&ensp; an optional number Sets
+&ensp; an Info which is either an AnaerobicInfo with:
 
-&ensp; an optional number Weight (in kg)
+&ensp; &ensp; a number Sets
 
-&ensp; an optional number Minutes
+&ensp; &ensp; a number Reps
 
-&ensp; a number Frequency (days per week)
+&ensp; &ensp; a number Weight
 
-&ensp; a number Duration (weeks)
+&ensp; or a RepAerobicInfo with:
+
+&ensp; &ensp; a number Minutes
+
+&ensp; &ensp; a RepSpeed (in reps/minute)
+
+&ensp; or a DistanceAerobicInfo with:
+
+&ensp; &ensp; a number Minutes
+
+&ensp; &ensp; a DistanceSpeed (in km/hr)
+
+&ensp; a number DaysPerWeek
+
+&ensp; a number Weeks
 
 &ensp; a number Level (1 to 3)
 
@@ -70,11 +84,11 @@ For each VerificationRequest, Requester is distinct from Approver
 
 **actions**
 
-createChallenge(creator: User, level: number, exercise: string, reps?: number, sets?: number, weight?: number, minutes?: number, frequency: number, duration: number)
+createChallenge(creator: User, level: number, exercise: string, info: AnaerobicInfo, RepAerobicInfo or DistanceAerobicInfo, daysPerWeek: number, weeks: number)
 
-**requires** level is an integer in \{1, 2, 3\}, reps and sets are positive integers if they exist, weight and minutes are positive numbers if they exist
+**requires** level is an integer in \{1, 2, 3\}, all fields in info are positive numbers, daysPerWeek and weeks are positive integers
 
-**effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, frequency and duration; creates a new Part for every week and day of the challenge with Completers set to an empty set
+**effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, daysPerWeek and weeks; creates a new Part for every week and day of the challenge with Completers set to an empty set
 
 openChallenge(challenge: Challenge)
 
@@ -106,7 +120,7 @@ acceptChallenge(challenge: Challenge, user: User)
 
 **effect** sets Accepted for user to True if Accepted was False, otherwise does nothing
 
-leaveChallenge(challenge: Challenge, user: User)
+removeFromChallenge(challenge: Challenge, user: User)
 
 **requires** challenge exists in Challenges, user is in Users for challenge
 
@@ -184,7 +198,7 @@ verify(part: Part, requester: User)
 
 **requires** challenge exists in Challenges
 
-**effect** returns Exercise, Level, Frequency, Duration, Reps, Sets, Minutes, Weight for this Challenge
+**effect** returns Exercise, Level, DaysPerWeek, Weeks, and Info for this Challenge
 
 \_getCreator(challenge: Challenge): User or Group
 
