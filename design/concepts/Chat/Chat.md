@@ -1,4 +1,4 @@
-# concept Friending
+# concept Chat
 - **purpose** to allow for users to communicate with other users
 
 - **principle** when a user starts a chat with another user, they can then send encouragement, make plans to meet, etc
