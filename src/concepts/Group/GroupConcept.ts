@@ -151,7 +151,7 @@ export default class GroupConcept {
     return {};
   }
 
-  async leave({
+  async removeMember({
     user,
     group,
   }: {
@@ -175,7 +175,7 @@ export default class GroupConcept {
     return {};
   }
 
-  async delete({
+  async deleteGroup({
     group,
   }: {
     group: Group;
@@ -186,6 +186,8 @@ export default class GroupConcept {
     }
 
     await this.groups.deleteOne({ _id: group });
+    await this.memberships.deleteMany({ group: group });
+    await this.membershipRequests.deleteMany({ group: group });
     return {};
   }
 
@@ -324,5 +326,19 @@ export default class GroupConcept {
     });
 
     return requests;
+  }
+
+  async _getRequestDetails({
+    membershipRequest,
+  }: {
+    membershipRequest: MembershipRequest;
+  }): Promise<Array<{ user: User; group: Group }>> {
+    const requestDoc = await this.membershipRequests.findOne({
+      _id: membershipRequest,
+    });
+    if (!requestDoc) {
+      return [];
+    }
+    return [{ user: requestDoc.requester, group: requestDoc.group }];
   }
 }

@@ -48,17 +48,17 @@ deny(request: MembershipRequest)
 
 **effect** removes request from MembershipRequests
 
-leave(user: User, group: Group)
+removeMember(user: User, group: Group)
 
 **requires** group is in Groups; user is in Members for group
 
 **effect** removes user from Members for group
 
-delete(group: Group)
+deleteGroup(group: Group)
 
 **requires** group is in Groups
 
-**effect** removes group from Groups
+**effect** removes group from Groups and all associated MembershipRequests
 
 **queries**
 
