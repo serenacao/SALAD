@@ -204,4 +204,10 @@ export default class UserAuthenticationConcept {
       return [{ isUser: false }];
     }
   }
+
+  async _getAllUsers(): Promise<{user: User}[]>{
+    const userDocs = (await this.users.find().toArray()).map(d => ({user: d._id}));
+    assertExists(userDocs);
+    return userDocs;
+  }
 }
