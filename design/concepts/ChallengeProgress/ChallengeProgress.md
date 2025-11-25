@@ -30,6 +30,12 @@ uploadChallenge(challenge: Challenge, daysOfWeek: Number, weeks: Number)
 
 **effect** creates a Part for every day in daysOfWeek and every week in weeks with challenge; adds them to Parts; adds challenge to UploadedChallenges
 
+removeChallenge(challenge: Challenge)
+
+**requires** challenge is in UploadedChallenges
+
+**effect** removes every Part with challenge
+
 completePart(part: Part, user: User)
 
 **requires** part exists in Parts
@@ -38,15 +44,21 @@ completePart(part: Part, user: User)
 
 **queries**
 
+\_getPartDayWeek(parts: Array of Part): Array of (Part, Day Week)
+
+**requires** every part in parts is in Parts
+
+**effect** returns every part in parts and the associated Day and Week
+
 \_getParts(challenge: Challenge): Array of (Part, Day, Week)
 
-**requires** challenge is in UploadedChallenges
+**requires** nothing
 
 **effect** returns every Part and the associated Day and Week for every Part with challenge
 
 \_getCompletedParts(user: User, challenge: Challenge): Array of (Part, Day, Week)
 
-**requires** challenge is in UploadedChallenges
+**requires** nothing
 
 **effect** returns every Part and the associated Day and Week for every Completion with user and challenge
 

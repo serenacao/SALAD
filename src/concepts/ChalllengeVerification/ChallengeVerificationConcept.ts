@@ -9,3 +9,13 @@ const PREFIX = "ChallengeVerification" + ".";
 // Generic types of this concept
 type User = ID;
 type Part = ID;
+type File = ID;
+type VerificationRequest = ID;
+
+interface VerificationRequestDoc {
+  _id: VerificationRequest;
+  file: File;
+  requester: User;
+  approver: User;
+  part: Part;
+}
