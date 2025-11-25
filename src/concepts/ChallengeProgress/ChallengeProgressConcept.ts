@@ -29,7 +29,7 @@ interface UploadedChallengeDoc {
   _id: Challenge;
 }
 
-export default class ChallengeParticipationConcept {
+export default class ChallengeProgressConcept {
   private parts: Collection<PartDoc>;
   private completions: Collection<CompletionDoc>;
   private uploadedChallenges: Collection<UploadedChallengeDoc>;
