@@ -19,3 +19,13 @@ interface VerificationRequestDoc {
   approver: User;
   part: Part;
 }
+
+export default class ChallengeParticipationConcept {
+  private verificationRequests: Collection<VerificationRequestDoc>;
+
+  constructor(private readonly db: Db) {
+    this.verificationRequests = this.db.collection(
+      PREFIX + "VerificationRequests"
+    );
+  }
+}

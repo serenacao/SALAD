@@ -26,8 +26,40 @@ createVerificationRequest(part: Part, requester: User, approver: User, evidence:
 
 **effect** creates a new VerificationRequest with requester, approver, part, evidence and Approved set to False; adds it to VerificationRequests
 
+removeVerificationRequest(verificationRequest)
+
+**requires** verificationRequest is in VerificationRequests
+
+**effect** deletes verificationRequest from VerificationRequests
+
 verify(verificationRequest: VerificationRequest)
 
 **requires** verificationRequest is in VerificationRequests;
 
 **effect** sets Approved to True for the associated VerificationRequest
+
+**queries**
+
+\_getRequestDetails(verificationRequests: Array of VerificationRequest): Array of Part, Evidence, File, Requester, Approver, Approved
+
+**requires** every VerificationRequest in verificationRequests is in VerificationRequests
+
+**effect** returns Part, Evidence, File, Requester, Approver, Approved for each VerificationRequest in verificationRequests
+
+\_getRequesterActiveRequests(user: User): Array of VerificationRequest
+
+**requires** nothing
+
+**effect** returns every verificationRequest with Requester as user in VerificationRequests and Approved as False
+
+\_getApproverActiveRequests(user: User): Array of VerificationRequest
+
+**requires** nothing
+
+**effect** returns every verificationRequest with Approver as user in VerificationRequests and Approved as False
+
+\_isRequested(part: Part, user: User): Boolean
+
+**requires** nothing
+
+**effect** returns True if there is a verificationRequest with part and Approver as user and Approved as False
