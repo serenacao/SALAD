@@ -1,5 +1,7 @@
 # SALAD
 
+[Checkpoint Alpha Updated Development Plan](./design/Checkpoint%20Alpha%20New%20Development%20Plan.pdf)
+
 [Problem Framing Assignment](./Problem%20Framing.md)
 
 [Development Plan](./design/Development%20Plan.pdf)
