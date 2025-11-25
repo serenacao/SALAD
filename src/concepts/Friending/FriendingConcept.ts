@@ -129,7 +129,7 @@ export default class FriendingConcept {
    *             Returns an array containing a single object, with a 'friends' key
    *             holding an array of User IDs.
    */
-  async _getFriends({ user }: { user: User }): Promise<Array<{ friends: User[] }>> {
+  async _getFriends({ user }: { user: User }): Promise<{friend: User}[]> {
     const friendDocs = await this.friendRequests.find({
       $or: [
         { requester: user, accepted: true },
@@ -137,13 +137,37 @@ export default class FriendingConcept {
       ],
     }).toArray();
 
-    const friends: User[] = friendDocs.map((doc) =>
-      doc.requester === user ? doc.receiver : doc.requester
+    const friends = friendDocs.map((doc) =>
+      ({friend: doc.requester === user ? doc.receiver : doc.requester})
     );
 
-    // Ensure uniqueness, though in this design, a unique relationship should prevent duplicates.
-    const uniqueFriends = [...new Set(friends)];
 
-    return [{ friends: uniqueFriends }];
+    return friends
   }
+
+  async _getReceivedFriendRequests({user}: {user: User}): Promise<{friendRequest: FriendRequest}[]> {
+    const friendDocs = await this.friendRequests.find(
+        { receiver: user, accepted: false },
+    ).toArray();
+
+    return friendDocs.map((doc) => ({friendRequest: doc._id}))
+  }
+
+  async _getSentFriendRequests({user}: {user: User}): Promise<{friendRequest: FriendRequest}[]> {
+    const friendDocs = await this.friendRequests.find(
+        { requester: user, accepted: false },
+    ).toArray();
+
+    return friendDocs.map((doc) => ({friendRequest: doc._id}))
+  }
+
+  async _getRequestInfo({friendRequest}: {friendRequest: FriendRequest}): Promise<{requester: User, receiver: User}[]> {
+    const friendDocs = await this.friendRequests.find(
+        { _id: friendRequest},
+    ).toArray();
+
+    return friendDocs.map((doc) => ({requester: doc.requester, receiver: doc.receiver}))
+  }
+
+
 }

@@ -113,22 +113,62 @@ export const RemoveFriendFailure: Sync = ({ request, error }) => ({
 
 //queries
 export const GetFriends: Sync = (
-    {request, session, user, friends}
+    {request, session, user, friend}
 ) => ({
     when: actions([Requesting.request, { path: "/Friending/_getFriends", session}, { request }],),
     where: async (frames) => {
         const originalFrame = frames[0];
         frames = await frames.query( Session._getUser, { session }, { user });
-        frames = await frames.query( Friending._getFriends, { user }, {friends});
+        frames = await frames.query( Friending._getFriends, { user }, {friend});
         if (frames.length === 0) {
-          const response = {...originalFrame, [friends]: []}
+          const response = {...originalFrame, [friend]: []}
           return new Frames(response)
         }
         return frames;
     },
     then: actions([Requesting.respond, {
         request,
-        friends
+        friend
+    }]),
+});
+
+export const GetReceivedFriendRequests: Sync = (
+    {request, session, user, friendRequest}
+) => ({
+    when: actions([Requesting.request, { path: "/Friending/_getReceivedFriendRequests", session}, { request }],),
+    where: async (frames) => {
+        const originalFrame = frames[0];
+        frames = await frames.query( Session._getUser, { session }, { user });
+        frames = await frames.query( Friending._getReceivedFriendRequests, { user }, {friendRequest});
+        if (frames.length === 0) {
+          const response = {...originalFrame, [friendRequest]: []}
+          return new Frames(response)
+        }
+        return frames;
+    },
+    then: actions([Requesting.respond, {
+        request,
+        friendRequest
+    }]),
+});
+
+export const GetSentFriendRequests: Sync = (
+    {request, session, user, friends: friendRequests}
+) => ({
+    when: actions([Requesting.request, { path: "/Friending/_getSentFriendRequests", session}, { request }],),
+    where: async (frames) => {
+        const originalFrame = frames[0];
+        frames = await frames.query( Session._getUser, { session }, { user });
+        frames = await frames.query( Friending._getSentFriendRequests, { user }, {friends: friendRequests});
+        if (frames.length === 0) {
+          const response = {...originalFrame, [friendRequests]: []}
+          return new Frames(response)
+        }
+        return frames;
+    },
+    then: actions([Requesting.respond, {
+        request,
+        friends: friendRequests
     }]),
 });
 
