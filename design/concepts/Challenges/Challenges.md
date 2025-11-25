@@ -194,30 +194,6 @@ verify(verificationRequest: VerificationRequest)
 
 **effect** returns every user in Users for this challenge where Completed is True
 
-\_getChallengeDetails(challenge: Challenge): Array of Dict
-
-**requires** challenge exists in Challenges
-
-**effect** returns Exercise, Level, DaysPerWeek, Weeks, and Info for this Challenge
-
-\_getCreator(challenge: Challenge): User or Group
-
-**requires** challenge exists in Challenges
-
-**effect** returns Creator for challenge
-
-\_getPartPoints(part: Part): Number
-
-**requires** part exists in Parts
-
-**effect** returns Points for the Challenge associated with part
-
-\_getChallengePoints(challenge: Challenge): Number
-
-**requires** challenge exists in Challenges
-
-**effect** returns BonusPoints for challenge
-
 \_getChallenges(user: User): Array of Challenge
 
 **requires** nothing
