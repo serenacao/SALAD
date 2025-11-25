@@ -9,7 +9,7 @@ const PREFIX = "ChallengeDefinition" + ".";
 // Generic types of this concept
 type User = ID;
 type Challenge = ID;
-type File = ID; // Assuming file is represented by an ID reference to a file storage concept
+
 export type AnaerobicInfo = {
   _type: "AnaerobicInfo";
   weight?: number; //kg
@@ -58,8 +58,8 @@ interface ChallengeDoc {
   open: boolean;
 }
 
-export default class ChallengesConcept {
-  challenges: Collection<ChallengeDoc>;
+export default class ChallengeDefinitionConcept {
+  private challenges: Collection<ChallengeDoc>;
 
   constructor(private readonly db: Db) {
     this.challenges = this.db.collection(PREFIX + "Challenges");
