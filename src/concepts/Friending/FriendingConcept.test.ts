@@ -1,355 +1,365 @@
-import { assertEquals } from "jsr:@std/assert";
-import { testDb, freshID } from "@utils/database.ts";
-import { ID } from "@utils/types.ts";
+import { assertEquals, assertNotEquals, assertArrayIncludes, assertObjectMatch } from "jsr:@std/assert";
+import { testDb } from "@utils/database.ts";
 import FriendingConcept from "./FriendingConcept.ts";
+import { ID } from "@utils/types.ts";
+import { freshID } from "@utils/database.ts";
 
-Deno.test("Friending Concept Tests", async (t) => {
+Deno.test("FriendingConcept", async (t) => {
   const [db, client] = await testDb();
-  const friendingConcept = new FriendingConcept(db);
+  const friending = new FriendingConcept(db);
 
-  // Define test users
-  const aliceId = freshID() as ID;
-  const bobId = freshID() as ID;
-  const charlieId = freshID() as ID;
+  // Define some user IDs for testing
+  const aliceId: ID = freshID();
+  const bobId: ID = freshID();
+  const charlieId: ID = freshID();
 
-  console.log(
-    "\n--- Friending Concept Test Trace ---",
-  );
+  // Helper function to check if an array of objects contains a specific friend ID
+  const containsFriend = (friends: { friend: ID }[], friendId: ID) =>
+    friends.some((f) => f.friend === friendId);
 
-  await t.step("Action: requestFriend - successful request", async () => {
-    console.log(
-      "\n- Testing requestFriend: Alice requests Bob (successful case)",
-    );
+  // Helper function to check if an array of objects contains a specific friendRequest ID
+  const containsFriendRequest = (requests: { friendRequest: ID }[], requestId: ID) =>
+    requests.some((r) => r.friendRequest === requestId);
 
-    const result = await friendingConcept.requestFriend({
-      requester: aliceId,
-      receiver: bobId,
+  await t.step("requestFriend: Confirms requirements and effects", async (t) => {
+    console.log("\n--- Testing requestFriend ---");
+
+    await t.step("should successfully send a friend request", async () => {
+      console.log("Action: Alice requests Bob");
+      const requestResult = await friending.requestFriend({ requester: aliceId, receiver: bobId });
+      console.log("Result:", requestResult);
+
+      assertEquals((requestResult as { error: string }).error, undefined, "request should not return an error");
+      const requestId = (requestResult as { request: ID }).request;
+      assertNotEquals(requestId, undefined, "should return a request ID");
+
+      // Verify effects: new FriendRequest exists with correct details
+      const requestInfo = await friending._getRequestInfo({ friendRequest: requestId });
+      console.log("Verifying request info:", requestInfo);
+      assertEquals(requestInfo.length, 1, "should find exactly one request");
+      assertObjectMatch(requestInfo[0], { requester: aliceId, receiver: bobId });
+
+      // Verify state for Alice (sent pending)
+      const aliceSentRequests = await friending._getSentFriendRequests({ user: aliceId });
+      console.log("Alice's sent requests:", aliceSentRequests);
+      assertEquals(aliceSentRequests.length, 1, "Alice should have 1 sent pending request");
+      assertArrayIncludes(aliceSentRequests.map(r => r.friendRequest), [requestId], "Alice's sent request should match the created one");
+
+      // Verify state for Bob (received pending)
+      const bobReceivedRequests = await friending._getReceivedFriendRequests({ user: bobId });
+      console.log("Bob's received requests:", bobReceivedRequests);
+      assertEquals(bobReceivedRequests.length, 1, "Bob should have 1 received pending request");
+      assertArrayIncludes(bobReceivedRequests.map(r => r.friendRequest), [requestId], "Bob's received request should match the created one");
     });
 
-    console.log(`  Alice requests Bob: ${JSON.stringify(result)}`);
-    assertEquals("request" in result, true, "Should return a request ID");
-
-    const friendRequests = await friendingConcept.friendRequests.find({
-      requester: aliceId,
-      receiver: bobId,
-    }).toArray();
-    assertEquals(friendRequests.length, 1, "One pending request should exist");
-    assertEquals(friendRequests[0].accepted, false, "Request should not be accepted yet");
-
-    console.log("  Effect confirmed: One pending request from Alice to Bob exists.");
-  });
-
-  await t.step("Action: requestFriend - fail: requester and receiver are the same user", async () => {
-    console.log(
-      "\n- Testing requestFriend: Alice requests herself (failure case)",
-    );
-
-    const result = await friendingConcept.requestFriend({
-      requester: aliceId,
-      receiver: aliceId,
+    await t.step("should fail to send a friend request to self", async () => {
+      console.log("Action: Alice requests Alice");
+      const requestResult = await friending.requestFriend({ requester: aliceId, receiver: aliceId });
+      console.log("Result:", requestResult);
+      assertEquals((requestResult as { error: string }).error, "Cannot send a friend request to yourself.", "should return an error for self-request");
     });
 
-    console.log(`  Alice requests Alice: ${JSON.stringify(result)}`);
-    assertEquals("error" in result, true, "Should return an error for self-request");
-    assertEquals(
-      (result as { error: string }).error,
-      "Cannot send a friend request to yourself.",
-      "Error message should indicate self-request.",
-    );
-    console.log("  Requirement confirmed: Cannot send a friend request to oneself.");
-  });
-
-  await t.step("Action: requestFriend - fail: pending request already exists (same direction)", async () => {
-    console.log(
-      "\n- Testing requestFriend: Alice requests Bob again (failure case: pending request)",
-    );
-
-    const result = await friendingConcept.requestFriend({
-      requester: aliceId,
-      receiver: bobId,
+    await t.step("should fail if a pending request already exists (requester to receiver)", async () => {
+      // Alice -> Bob request already exists from previous test
+      console.log("Action: Alice requests Bob again (pending request exists)");
+      const requestResult = await friending.requestFriend({ requester: aliceId, receiver: bobId });
+      console.log("Result:", requestResult);
+      assertEquals((requestResult as { error: string }).error, "A pending friend request already exists.", "should return an error for duplicate pending request");
     });
 
-    console.log(`  Alice requests Bob again: ${JSON.stringify(result)}`);
-    assertEquals("error" in result, true, "Should return an error if request already pending");
-    assertEquals(
-      (result as { error: string }).error,
-      "A pending friend request already exists.",
-      "Error message should indicate existing pending request.",
-    );
-    console.log("  Requirement confirmed: Cannot send a duplicate pending friend request.");
-  });
+    await t.step("should fail if a pending request already exists (receiver to requester)", async () => {
+      // Charlie requests Alice
+      console.log("Action: Charlie requests Alice");
+      await friending.requestFriend({ requester: charlieId, receiver: aliceId });
 
-  await t.step("Action: requestFriend - fail: pending request already exists (opposite direction)", async () => {
-    console.log(
-      "\n- Testing requestFriend: Charlie requests Alice, while Alice has pending request to Bob (failure case: pending request exists involving other users)",
-    );
+      console.log("Action: Alice requests Charlie (Charlie -> Alice pending exists)");
+      const requestResult = await friending.requestFriend({ requester: aliceId, receiver: charlieId });
+      console.log("Result:", requestResult);
+      assertEquals((requestResult as { error: string }).error, "A pending friend request already exists.", "should return an error for reverse pending request");
 
-    // First, Charlie requests Alice
-    await friendingConcept.requestFriend({ requester: charlieId, receiver: aliceId });
-    console.log("  Charlie requested Alice (new pending request).");
-
-    // Then, Alice tries to request Charlie (should fail as Charlie requested Alice)
-    const result = await friendingConcept.requestFriend({
-      requester: aliceId,
-      receiver: charlieId,
+      // Clean up Charlie -> Alice request for subsequent tests
+      await friending.removeFriend({ user: charlieId, requester: aliceId });
     });
 
-    console.log(`  Alice requests Charlie: ${JSON.stringify(result)}`);
-    assertEquals("error" in result, true, "Should return an error if request already pending in opposite direction");
-    assertEquals(
-      (result as { error: string }).error,
-      "A pending friend request already exists.",
-      "Error message should indicate existing pending request (even if opposite).",
-    );
-    console.log("  Requirement confirmed: Cannot send a request if a pending request exists in the opposite direction.");
-  });
+    await t.step("should fail if users are already friends", async () => {
+      // Make Alice and Bob friends
+      const aliceBobRequest = await friending.friendRequests.findOne({ requester: aliceId, receiver: bobId });
+      if (aliceBobRequest) { // Ensure the previous request exists
+        await friending.acceptFriend({ user: bobId, requester: aliceId });
+        console.log("Prerequisite: Alice and Bob are now friends.");
+      }
 
-  await t.step("Query: _getFriends - no friends initially", async () => {
-    console.log("\n- Testing _getFriends: Alice has no friends yet.");
-    const friendsOfAlice = await friendingConcept._getFriends({ user: aliceId });
-    console.log(`  Friends of Alice: ${JSON.stringify(friendsOfAlice)}`);
-    assertEquals(friendsOfAlice[0].friends.length, 0, "Alice should have no friends yet.");
-    console.log("  Effect confirmed: Alice's friends list is empty.");
-  });
-
-  await t.step("Action: acceptFriend - successful acceptance", async () => {
-    console.log("\n- Testing acceptFriend: Bob accepts Alice's request.");
-
-    const result = await friendingConcept.acceptFriend({ user: bobId, requester: aliceId });
-
-    console.log(`  Bob accepts Alice's request: ${JSON.stringify(result)}`);
-    assertEquals("error" in result, false, "Acceptance should be successful");
-    assertEquals(Object.keys(result).length, 0, "Should return an empty object for success");
-
-    const acceptedRequest = await friendingConcept.friendRequests.findOne({
-      requester: aliceId,
-      receiver: bobId,
+      console.log("Action: Alice requests Bob again (already friends)");
+      const requestResult = await friending.requestFriend({ requester: aliceId, receiver: bobId });
+      console.log("Result:", requestResult);
+      assertEquals((requestResult as { error: string }).error, "Users are already friends.", "should return an error if already friends");
     });
-    assertEquals(acceptedRequest?.accepted, true, "Request should now be accepted");
-    console.log("  Effect confirmed: Request from Alice to Bob is now accepted.");
   });
 
-  await t.step("Query: _getFriends - after acceptance", async () => {
-    console.log("\n- Testing _getFriends: Alice and Bob are now friends.");
-    const friendsOfAlice = await friendingConcept._getFriends({ user: aliceId });
-    console.log(`  Friends of Alice: ${JSON.stringify(friendsOfAlice)}`);
-    assertEquals(
-      friendsOfAlice[0].friends.includes(bobId),
-      true,
-      "Bob should be in Alice's friends list.",
-    );
-    assertEquals(friendsOfAlice[0].friends.length, 1, "Alice should have one friend.");
+  await t.step("acceptFriend: Confirms requirements and effects", async (t) => {
+    console.log("\n--- Testing acceptFriend ---");
 
-    const friendsOfBob = await friendingConcept._getFriends({ user: bobId });
-    console.log(`  Friends of Bob: ${JSON.stringify(friendsOfBob)}`);
-    assertEquals(
-      friendsOfBob[0].friends.includes(aliceId),
-      true,
-      "Alice should be in Bob's friends list.",
-    );
-    assertEquals(friendsOfBob[0].friends.length, 1, "Bob should have one friend.");
+    // Prerequisite: Alice requests Charlie (they are not friends yet, from previous tests)
+    console.log("Prerequisite: Alice requests Charlie");
+    const aliceCharlieReq = await friending.requestFriend({ requester: aliceId, receiver: charlieId });
+    const aliceCharlieRequestId = (aliceCharlieReq as { request: ID }).request;
+    assertNotEquals(aliceCharlieRequestId, undefined, "Prerequisite request should be successful");
 
-    console.log("  Effect confirmed: Alice and Bob now correctly appear in each other's friend lists.");
-  });
+    await t.step("should successfully accept a pending friend request", async () => {
+      console.log("Action: Charlie accepts Alice's request");
+      const acceptResult = await friending.acceptFriend({ user: charlieId, requester: aliceId });
+      console.log("Result:", acceptResult);
+      assertEquals((acceptResult as { error: string }).error, undefined, "accept should not return an error");
 
-  await t.step("Action: requestFriend - fail: users are already friends", async () => {
-    console.log(
-      "\n- Testing requestFriend: Alice requests Bob again (failure case: already friends)",
-    );
+      // Verify effects: request accepted flag is true
+      const acceptedRequestDoc = await friending.friendRequests.findOne({ _id: aliceCharlieRequestId });
+      console.log("Verifying request document after acceptance:", acceptedRequestDoc);
+      assertEquals(acceptedRequestDoc?.accepted, true, "request accepted flag should be true");
 
-    const result = await friendingConcept.requestFriend({
-      requester: aliceId,
-      receiver: bobId,
+      // Verify state: Alice and Charlie are friends
+      const aliceFriends = await friending._getFriends({ user: aliceId });
+      const charlieFriends = await friending._getFriends({ user: charlieId });
+      console.log("Alice's friends:", aliceFriends);
+      console.log("Charlie's friends:", charlieFriends);
+      assertArrayIncludes(aliceFriends.map(f => f.friend), [charlieId], "Alice should list Charlie as a friend");
+      assertArrayIncludes(charlieFriends.map(f => f.friend), [aliceId], "Charlie should list Alice as a friend");
+
+      // Verify state: no more pending requests for Charlie from Alice
+      const charlieReceivedRequests = await friending._getReceivedFriendRequests({ user: charlieId });
+      console.log("Charlie's received requests after acceptance:", charlieReceivedRequests);
+      assertEquals(charlieReceivedRequests.length, 0, "Charlie should have no pending requests from Alice");
     });
 
-    console.log(`  Alice requests Bob (already friends): ${JSON.stringify(result)}`);
-    assertEquals("error" in result, true, "Should return an error if users are already friends");
-    assertEquals(
-      (result as { error: string }).error,
-      "Users are already friends.",
-      "Error message should indicate existing friendship.",
-    );
-    console.log("  Requirement confirmed: Cannot send a request to an existing friend.");
+    await t.step("should fail to accept a non-existent friend request", async () => {
+      console.log("Action: Bob tries to accept a request from Charlie (no such request)");
+      const acceptResult = await friending.acceptFriend({ user: bobId, requester: charlieId });
+      console.log("Result:", acceptResult);
+      assertEquals((acceptResult as { error: string }).error, "No pending friend request found from requester to user.", "should return an error for non-existent request");
+    });
+
+    await t.step("should fail to accept an already accepted friend request", async () => {
+      // Alice and Charlie are already friends from previous test
+      console.log("Action: Charlie tries to accept Alice's request again (already accepted)");
+      const acceptResult = await friending.acceptFriend({ user: charlieId, requester: aliceId });
+      console.log("Result:", acceptResult);
+      assertEquals((acceptResult as { error: string }).error, "No pending friend request found from requester to user.", "should return an error for already accepted request");
+    });
+
+    await t.step("should fail if the user is not the receiver of the request", async () => {
+      // Prerequisite: Bob requests Charlie
+      console.log("Prerequisite: Bob requests Charlie");
+      const bobCharlieReq = await friending.requestFriend({ requester: bobId, receiver: charlieId });
+      const bobCharlieRequestId = (bobCharlieReq as { request: ID }).request;
+      assertNotEquals(bobCharlieRequestId, undefined, "Prerequisite request should be successful");
+
+      console.log("Action: Alice tries to accept Bob's request to Charlie (Alice is not receiver)");
+      const acceptResult = await friending.acceptFriend({ user: aliceId, requester: bobId });
+      console.log("Result:", acceptResult);
+      assertEquals((acceptResult as { error: string }).error, "No pending friend request found from requester to user.", "should return an error if user is not the receiver");
+
+      // Clean up Bob -> Charlie request
+      await friending.removeFriend({ user: bobId, requester: charlieId });
+    });
   });
 
-  await t.step("Action: acceptFriend - fail: no pending request", async () => {
-    console.log(
-      "\n- Testing acceptFriend: Charlie tries to accept a non-existent request from Bob (failure case)",
-    );
+  await t.step("removeFriend: Confirms requirements and effects", async (t) => {
+    console.log("\n--- Testing removeFriend ---");
 
-    const result = await friendingConcept.acceptFriend({
-      user: charlieId,
-      requester: bobId,
+    // Prerequisite: Alice and Bob are friends from previous tests. Alice and Charlie are friends.
+    // Prerequisite: Create a pending request: Bob requests Charlie
+    console.log("Prerequisite: Bob requests Charlie");
+    const bobCharlieReq = await friending.requestFriend({ requester: bobId, receiver: charlieId });
+    const bobCharlieRequestId = (bobCharlieReq as { request: ID }).request;
+    assertNotEquals(bobCharlieRequestId, undefined, "Prerequisite request should be successful");
+
+    await t.step("should successfully remove an accepted friend relationship (by requester)", async () => {
+      // Alice and Bob are friends
+      console.log("Action: Alice removes Bob (Alice was requester)");
+      const removeResult = await friending.removeFriend({ user: aliceId, requester: bobId });
+      console.log("Result:", removeResult);
+      assertEquals((removeResult as { error: string }).error, undefined, "remove should not return an error");
+
+      // Verify effects: FriendRequest document is removed
+      const removedDoc = await friending.friendRequests.findOne({
+        $or: [{ requester: aliceId, receiver: bobId }, { requester: bobId, receiver: aliceId }],
+      });
+      console.log("Verifying document removal:", removedDoc);
+      assertEquals(removedDoc, null, "FriendRequest document should be removed");
+
+      // Verify state: Alice and Bob are no longer friends
+      const aliceFriends = await friending._getFriends({ user: aliceId });
+      const bobFriends = await friending._getFriends({ user: bobId });
+      console.log("Alice's friends after removal:", aliceFriends);
+      console.log("Bob's friends after removal:", bobFriends);
+      assertEquals(containsFriend(aliceFriends, bobId), false, "Alice should no longer list Bob as a friend");
+      assertEquals(containsFriend(bobFriends, aliceId), false, "Bob should no longer list Alice as a friend");
     });
 
-    console.log(`  Charlie accepts Bob: ${JSON.stringify(result)}`);
-    assertEquals("error" in result, true, "Should return an error for non-existent request");
-    assertEquals(
-      (result as { error: string }).error,
-      "No pending friend request found from requester to user.",
-      "Error message should indicate no pending request.",
-    );
-    console.log("  Requirement confirmed: Cannot accept a non-existent friend request.");
+    await t.step("should successfully remove an accepted friend relationship (by receiver)", async () => {
+      // Alice and Charlie are friends
+      console.log("Action: Charlie removes Alice (Charlie was receiver)");
+      const removeResult = await friending.removeFriend({ user: charlieId, requester: aliceId });
+      console.log("Result:", removeResult);
+      assertEquals((removeResult as { error: string }).error, undefined, "remove should not return an error");
+
+      // Verify effects: FriendRequest document is removed
+      const removedDoc = await friending.friendRequests.findOne({
+        $or: [{ requester: aliceId, receiver: charlieId }, { requester: charlieId, receiver: aliceId }],
+      });
+      console.log("Verifying document removal:", removedDoc);
+      assertEquals(removedDoc, null, "FriendRequest document should be removed");
+
+      // Verify state: Alice and Charlie are no longer friends
+      const aliceFriends = await friending._getFriends({ user: aliceId });
+      const charlieFriends = await friending._getFriends({ user: charlieId });
+      console.log("Alice's friends after removal:", aliceFriends);
+      console.log("Charlie's friends after removal:", charlieFriends);
+      assertEquals(containsFriend(aliceFriends, charlieId), false, "Alice should no longer list Charlie as a friend");
+      assertEquals(containsFriend(charlieFriends, aliceId), false, "Charlie should no longer list Alice as a friend");
+    });
+
+    await t.step("should successfully remove a pending friend request", async () => {
+      // Bob -> Charlie request is pending
+      console.log("Action: Bob removes Charlie (pending request)");
+      const removeResult = await friending.removeFriend({ user: bobId, requester: charlieId });
+      console.log("Result:", removeResult);
+      assertEquals((removeResult as { error: string }).error, undefined, "remove should not return an error");
+
+      // Verify effects: FriendRequest document is removed
+      const removedDoc = await friending.friendRequests.findOne({ _id: bobCharlieRequestId });
+      console.log("Verifying document removal:", removedDoc);
+      assertEquals(removedDoc, null, "FriendRequest document should be removed");
+
+      // Verify state: no pending requests from Bob to Charlie
+      const bobSentRequests = await friending._getSentFriendRequests({ user: bobId });
+      const charlieReceivedRequests = await friending._getReceivedFriendRequests({ user: charlieId });
+      console.log("Bob's sent requests after removal:", bobSentRequests);
+      console.log("Charlie's received requests after removal:", charlieReceivedRequests);
+      assertEquals(containsFriendRequest(bobSentRequests, bobCharlieRequestId), false, "Bob should not have the sent pending request");
+      assertEquals(containsFriendRequest(charlieReceivedRequests, bobCharlieRequestId), false, "Charlie should not have the received pending request");
+    });
+
+    await t.step("should fail to remove a non-existent friend relationship or request", async () => {
+      console.log("Action: Alice tries to remove Charlie (no relationship exists)");
+      const removeResult = await friending.removeFriend({ user: aliceId, requester: charlieId });
+      console.log("Result:", removeResult);
+      assertEquals((removeResult as { error: string }).error, "No friend request found between specified users.", "should return an error for non-existent relationship");
+    });
   });
 
-  await t.step("Action: acceptFriend - fail: already accepted request", async () => {
-    console.log(
-      "\n- Testing acceptFriend: Bob tries to accept Alice's request again (failure case: already accepted)",
-    );
+  await t.step("Principle: Full friending lifecycle trace", async (t) => {
+    console.log("\n--- Principle Trace: Full Friending Lifecycle ---");
 
-    const result = await friendingConcept.acceptFriend({
-      user: bobId,
-      requester: aliceId,
-    });
+    // Reinitialize concept state for a clean trace
+    await friending.friendRequests.deleteMany({});
+    console.log("Cleaned up all previous friend requests for principle trace.");
 
-    console.log(`  Bob accepts Alice again: ${JSON.stringify(result)}`);
-    assertEquals("error" in result, true, "Should return an error for already accepted request");
-    assertEquals(
-      (result as { error: string }).error,
-      "No pending friend request found from requester to user.", // The query implicitly checks accepted: false
-      "Error message should indicate no *pending* request.",
-    );
-    console.log("  Requirement confirmed: Cannot accept an already accepted request.");
-  });
+    // Alice, Bob, Charlie are distinct users.
+    // 1. Alice requests Bob
+    console.log("\nTrace Step 1: Alice requests Bob");
+    const aliceRequestsBob = await friending.requestFriend({ requester: aliceId, receiver: bobId });
+    const aliceBobRequestId = (aliceRequestsBob as { request: ID }).request;
+    assertNotEquals(aliceBobRequestId, undefined, "Alice's request to Bob should succeed.");
+    console.log("Alice's request to Bob successful. Request ID:", aliceBobRequestId);
 
-  await t.step("Action: removeFriend - remove pending request", async () => {
-    console.log("\n- Testing removeFriend: Alice removes Charlie's pending request.");
+    // 2. Verify pending state
+    console.log("Trace Step 2: Verifying pending state.");
+    let aliceSent = await friending._getSentFriendRequests({ user: aliceId });
+    let bobReceived = await friending._getReceivedFriendRequests({ user: bobId });
+    assertEquals(aliceSent.length, 1, "Alice should have 1 sent request.");
+    assertEquals(containsFriendRequest(aliceSent, aliceBobRequestId), true, "Alice's sent request to Bob is present.");
+    assertEquals(bobReceived.length, 1, "Bob should have 1 received request.");
+    assertEquals(containsFriendRequest(bobReceived, aliceBobRequestId), true, "Bob's received request from Alice is present.");
+    let aliceFriends = await friending._getFriends({ user: aliceId });
+    let bobFriends = await friending._getFriends({ user: bobId });
+    assertEquals(aliceFriends.length, 0, "Alice should have no friends yet.");
+    assertEquals(bobFriends.length, 0, "Bob should have no friends yet.");
+    console.log("Pending state verified.");
 
-    const result = await friendingConcept.removeFriend({
-      user: aliceId,
-      requester: charlieId,
-    });
+    // 3. Bob accepts Alice's request
+    console.log("\nTrace Step 3: Bob accepts Alice's request");
+    const bobAcceptsAlice = await friending.acceptFriend({ user: bobId, requester: aliceId });
+    assertEquals((bobAcceptsAlice as { error: string }).error, undefined, "Bob should successfully accept Alice's request.");
+    console.log("Bob accepted Alice's request.");
 
-    console.log(`  Alice removes Charlie's request: ${JSON.stringify(result)}`);
-    assertEquals("error" in result, false, "Removal of pending request should be successful");
-    assertEquals(Object.keys(result).length, 0, "Should return an empty object for success");
+    // 4. Verify friendship state
+    console.log("Trace Step 4: Verifying friendship state.");
+    aliceFriends = await friending._getFriends({ user: aliceId });
+    bobFriends = await friending._getFriends({ user: bobId });
+    assertEquals(aliceFriends.length, 1, "Alice should have 1 friend.");
+    assertEquals(containsFriend(aliceFriends, bobId), true, "Alice should list Bob as a friend.");
+    assertEquals(bobFriends.length, 1, "Bob should have 1 friend.");
+    assertEquals(containsFriend(bobFriends, aliceId), true, "Bob should list Alice as a friend.");
 
-    const remainingRequests = await friendingConcept.friendRequests.find({
-      $or: [{ requester: aliceId, receiver: charlieId }, { requester: charlieId, receiver: aliceId }],
-    }).toArray();
-    assertEquals(remainingRequests.length, 0, "Pending request from Charlie to Alice should be removed.");
-    console.log("  Effect confirmed: Pending request between Alice and Charlie is removed.");
-  });
+    aliceSent = await friending._getSentFriendRequests({ user: aliceId });
+    bobReceived = await friending._getReceivedFriendRequests({ user: bobId });
+    assertEquals(aliceSent.length, 0, "Alice should have no pending sent requests.");
+    assertEquals(bobReceived.length, 0, "Bob should have no pending received requests.");
+    console.log("Friendship state verified: Alice and Bob are friends.");
 
-  await t.step("Action: removeFriend - remove an accepted friendship", async () => {
-    console.log("\n- Testing removeFriend: Alice unfriends Bob.");
+    // 5. Alice requests Charlie
+    console.log("\nTrace Step 5: Alice requests Charlie");
+    const aliceRequestsCharlie = await friending.requestFriend({ requester: aliceId, receiver: charlieId });
+    const aliceCharlieRequestId = (aliceRequestsCharlie as { request: ID }).request;
+    assertNotEquals(aliceCharlieRequestId, undefined, "Alice's request to Charlie should succeed.");
+    console.log("Alice's request to Charlie successful. Request ID:", aliceCharlieRequestId);
 
-    const result = await friendingConcept.removeFriend({
-      user: aliceId,
-      requester: bobId,
-    });
+    // 6. Charlie accepts Alice's request
+    console.log("\nTrace Step 6: Charlie accepts Alice's request");
+    const charlieAcceptsAlice = await friending.acceptFriend({ user: charlieId, requester: aliceId });
+    assertEquals((charlieAcceptsAlice as { error: string }).error, undefined, "Charlie should successfully accept Alice's request.");
+    console.log("Charlie accepted Alice's request.");
 
-    console.log(`  Alice unfriends Bob: ${JSON.stringify(result)}`);
-    assertEquals("error" in result, false, "Removal of accepted friendship should be successful");
-    assertEquals(Object.keys(result).length, 0, "Should return an empty object for success");
+    // 7. Verify Alice and Charlie are friends, and Alice and Bob are still friends
+    console.log("Trace Step 7: Verifying all friendships.");
+    aliceFriends = await friending._getFriends({ user: aliceId });
+    let charlieFriends = await friending._getFriends({ user: charlieId });
+    bobFriends = await friending._getFriends({ user: bobId });
 
-    const remainingFriendships = await friendingConcept.friendRequests.find({
-      $or: [{ requester: aliceId, receiver: bobId }, { requester: bobId, receiver: aliceId }],
-    }).toArray();
-    assertEquals(remainingFriendships.length, 0, "Friendship between Alice and Bob should be removed.");
-    console.log("  Effect confirmed: Friendship between Alice and Bob is removed.");
-  });
+    assertEquals(aliceFriends.length, 2, "Alice should have 2 friends.");
+    assertEquals(containsFriend(aliceFriends, bobId), true, "Alice should still be friends with Bob.");
+    assertEquals(containsFriend(aliceFriends, charlieId), true, "Alice should be friends with Charlie.");
 
-  await t.step("Query: _getFriends - after removal", async () => {
-    console.log("\n- Testing _getFriends: Alice and Bob are no longer friends.");
-    const friendsOfAlice = await friendingConcept._getFriends({ user: aliceId });
-    console.log(`  Friends of Alice: ${JSON.stringify(friendsOfAlice)}`);
-    assertEquals(friendsOfAlice[0].friends.length, 0, "Alice should have no friends after unfriend.");
+    assertEquals(charlieFriends.length, 1, "Charlie should have 1 friend.");
+    assertEquals(containsFriend(charlieFriends, aliceId), true, "Charlie should be friends with Alice.");
 
-    const friendsOfBob = await friendingConcept._getFriends({ user: bobId });
-    console.log(`  Friends of Bob: ${JSON.stringify(friendsOfBob)}`);
-    assertEquals(friendsOfBob[0].friends.length, 0, "Bob should have no friends after unfriend.");
-    console.log("  Effect confirmed: Alice and Bob's friend lists are empty.");
-  });
+    assertEquals(bobFriends.length, 1, "Bob should have 1 friend.");
+    assertEquals(containsFriend(bobFriends, aliceId), true, "Bob should still be friends with Alice.");
+    console.log("All friendships verified.");
 
-  await t.step("Action: removeFriend - fail: no request/friendship exists", async () => {
-    console.log(
-      "\n- Testing removeFriend: Alice tries to unfriend Charlie (no existing relationship)",
-    );
+    // 8. Bob removes Alice
+    console.log("\nTrace Step 8: Bob removes Alice");
+    const bobRemovesAlice = await friending.removeFriend({ user: bobId, requester: aliceId });
+    assertEquals((bobRemovesAlice as { error: string }).error, undefined, "Bob should successfully remove Alice.");
+    console.log("Bob removed Alice.");
 
-    const result = await friendingConcept.removeFriend({
-      user: aliceId,
-      requester: charlieId,
-    });
+    // 9. Verify Alice and Bob are no longer friends, but Alice and Charlie are still friends
+    console.log("Trace Step 9: Verifying friendships after removal.");
+    aliceFriends = await friending._getFriends({ user: aliceId });
+    bobFriends = await friending._getFriends({ user: bobId });
+    charlieFriends = await friending._getFriends({ user: charlieId });
 
-    console.log(`  Alice unfriends Charlie: ${JSON.stringify(result)}`);
-    assertEquals("error" in result, true, "Should return an error if no relationship exists");
-    assertEquals(
-      (result as { error: string }).error,
-      "No friend request found between specified users.",
-      "Error message should indicate no relationship.",
-    );
-    console.log("  Requirement confirmed: Cannot remove a non-existent friend request or friendship.");
-  });
+    assertEquals(aliceFriends.length, 1, "Alice should now have 1 friend.");
+    assertEquals(containsFriend(aliceFriends, bobId), false, "Alice should no longer be friends with Bob.");
+    assertEquals(containsFriend(aliceFriends, charlieId), true, "Alice should still be friends with Charlie.");
 
-  await t.step("Principle Test: User requests, accepts, then unfriends", async () => {
-    console.log(
-      "\n--- Principle Test: Alice and Bob's Friendship Lifecycle ---",
-    );
+    assertEquals(bobFriends.length, 0, "Bob should have 0 friends.");
+    assertEquals(containsFriend(bobFriends, aliceId), false, "Bob should no longer be friends with Alice.");
 
-    // Initial state: No friendship between Alice and Bob
-    let friendsAlice = await friendingConcept._getFriends({ user: aliceId });
-    assertEquals(friendsAlice[0].friends.length, 0, "Alice should have no friends initially.");
-    console.log(`  Initial: Alice's friends: ${JSON.stringify(friendsAlice[0].friends)}`);
+    assertEquals(charlieFriends.length, 1, "Charlie should still have 1 friend.");
+    assertEquals(containsFriend(charlieFriends, aliceId), true, "Charlie should still be friends with Alice.");
+    console.log("Friendships verified after removal.");
 
-    // 1. Alice friend requests Bob
-    const requestResult = await friendingConcept.requestFriend({
-      requester: aliceId,
-      receiver: bobId,
-    });
-    assertEquals("request" in requestResult, true, "Alice's request to Bob should succeed.");
-    console.log(`  Alice requests Bob: ${JSON.stringify(requestResult)}`);
+    // Alice also removes Charlie
+    console.log("\nTrace Step 10: Alice removes Charlie (cleanup)");
+    const aliceRemovesCharlie = await friending.removeFriend({ user: aliceId, requester: charlieId });
+    assertEquals((aliceRemovesCharlie as { error: string }).error, undefined, "Alice should successfully remove Charlie.");
 
-    // Verify they are not friends yet
-    friendsAlice = await friendingConcept._getFriends({ user: aliceId });
-    assertEquals(friendsAlice[0].friends.length, 0, "Alice should not be friends with Bob yet (pending).");
-    console.log(`  After request: Alice's friends: ${JSON.stringify(friendsAlice[0].friends)}`);
-
-    // 2. Bob accepts Alice's request
-    const acceptResult = await friendingConcept.acceptFriend({
-      user: bobId,
-      requester: aliceId,
-    });
-    assertEquals("error" in acceptResult, false, "Bob's acceptance of Alice's request should succeed.");
-    console.log(`  Bob accepts Alice's request: ${JSON.stringify(acceptResult)}`);
-
-    // Verify they are now friends
-    friendsAlice = await friendingConcept._getFriends({ user: aliceId });
-    assertEquals(friendsAlice[0].friends.includes(bobId), true, "Alice should now be friends with Bob.");
-    assertEquals(friendsAlice[0].friends.length, 1, "Alice should have one friend.");
-    let friendsBob = await friendingConcept._getFriends({ user: bobId });
-    assertEquals(friendsBob[0].friends.includes(aliceId), true, "Bob should now be friends with Alice.");
-    console.log(`  After acceptance: Alice's friends: ${JSON.stringify(friendsAlice[0].friends)}`);
-    console.log(`  After acceptance: Bob's friends: ${JSON.stringify(friendsBob[0].friends)}`);
-
-    // "then the users can issue challenges to each other" - (This part would be handled by other concepts synchronized with Friending)
-    console.log(
-      "  Principle point: Alice and Bob are now friends, enabling mutual interactions (e.g., challenges).",
-    );
-
-    // 3. Alice unfriends Bob
-    const unfriendResult = await friendingConcept.removeFriend({
-      user: aliceId,
-      requester: bobId,
-    });
-    assertEquals("error" in unfriendResult, false, "Alice unfriending Bob should succeed.");
-    console.log(`  Alice unfriends Bob: ${JSON.stringify(unfriendResult)}`);
-
-    // Verify they are no longer friends
-    friendsAlice = await friendingConcept._getFriends({ user: aliceId });
-    assertEquals(friendsAlice[0].friends.length, 0, "Alice should no longer be friends with Bob.");
-    friendsBob = await friendingConcept._getFriends({ user: bobId });
-    assertEquals(friendsBob[0].friends.length, 0, "Bob should no longer be friends with Alice.");
-    console.log(`  After unfriend: Alice's friends: ${JSON.stringify(friendsAlice[0].friends)}`);
-    console.log(`  After unfriend: Bob's friends: ${JSON.stringify(friendsBob[0].friends)}`);
-
-    // "when a user unfriends another user, they can’t issue challenges" - (This part would be handled by other concepts)
-    console.log(
-      "  Principle point: Alice and Bob are no longer friends, disabling mutual interactions.",
-    );
-    console.log(
-      "  Principle fully modeled: The full lifecycle of friendship from request to acceptance to removal is demonstrated.",
-    );
+    aliceFriends = await friending._getFriends({ user: aliceId });
+    charlieFriends = await friending._getFriends({ user: charlieId });
+    assertEquals(aliceFriends.length, 0, "Alice should have 0 friends.");
+    assertEquals(charlieFriends.length, 0, "Charlie should have 0 friends.");
+    console.log("All friendships cleaned up.");
   });
 
   await client.close();

@@ -123,11 +123,7 @@ export default class FriendingConcept {
   }
 
   /**
-   * _getFriends(user: User): (friends: User[])
-   *
-   * **effects** returns a list of users who are friends of the given `user`.
-   *             Returns an array containing a single object, with a 'friends' key
-   *             holding an array of User IDs.
+   * given a user, returns a list of their friends (either user sent a request they accepted or they sent a request user accepted)
    */
   async _getFriends({ user }: { user: User }): Promise<{friend: User}[]> {
     const friendDocs = await this.friendRequests.find({
@@ -145,6 +141,9 @@ export default class FriendingConcept {
     return friends
   }
 
+  /**
+   * given a user, returns a list of unaccepted friend requests sent to the user
+   */
   async _getReceivedFriendRequests({user}: {user: User}): Promise<{friendRequest: FriendRequest}[]> {
     const friendDocs = await this.friendRequests.find(
         { receiver: user, accepted: false },
@@ -153,6 +152,9 @@ export default class FriendingConcept {
     return friendDocs.map((doc) => ({friendRequest: doc._id}))
   }
 
+  /**
+   * given a user, returns a list of unaccepted friend requests sent by user
+   */
   async _getSentFriendRequests({user}: {user: User}): Promise<{friendRequest: FriendRequest}[]> {
     const friendDocs = await this.friendRequests.find(
         { requester: user, accepted: false },
@@ -161,6 +163,9 @@ export default class FriendingConcept {
     return friendDocs.map((doc) => ({friendRequest: doc._id}))
   }
 
+  /**
+   * given a friend request id, returns a list with the requester and receiver
+   */
   async _getRequestInfo({friendRequest}: {friendRequest: FriendRequest}): Promise<{requester: User, receiver: User}[]> {
     const friendDocs = await this.friendRequests.find(
         { _id: friendRequest},
