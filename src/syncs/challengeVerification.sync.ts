@@ -77,6 +77,8 @@ export const CreateVerificationRequestResponseError: Sync = ({
   then: actions([Requesting.respond, { request, error }]),
 });
 
+// removeVerificationRequest
+
 // verify
 
 export const VerifyRequest: Sync = ({
