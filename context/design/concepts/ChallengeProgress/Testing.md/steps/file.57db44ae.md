@@ -1,3 +1,12 @@
+---
+timestamp: 'Tue Nov 25 2025 11:26:36 GMT-0500 (Eastern Standard Time)'
+parent: '[[../20251125_112636.bb47d6b8.md]]'
+content_id: 57db44ae1a8bbcde14939f68983582d0b668de33453a603c071deb1e311ddbf5
+---
+
+# file: src/concepts/ChallengeProgress/ChallengeProgressConcept.ts
+
+```typescript
 import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
@@ -90,7 +99,7 @@ export default class ChallengeProgressConcept {
 
     await this.parts.deleteMany({ challenge: challenge });
 
-    await this.completions.deleteMany({ challenge: challenge });
+    await this.completions.deleteOne({ challenge: challenge });
     return {};
   }
 
@@ -196,3 +205,4 @@ export default class ChallengeProgressConcept {
     return [{ allPartsCompleted: completions.length === parts.length }];
   }
 }
+```

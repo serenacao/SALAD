@@ -1,3 +1,12 @@
+---
+timestamp: 'Tue Nov 25 2025 09:11:39 GMT-0500 (Eastern Standard Time)'
+parent: '[[../20251125_091139.353f6f36.md]]'
+content_id: 74cd18dd4a27e817506c7bba7afb715201846fc47f8075dc40a84458212af9e8
+---
+
+# file: src/concepts/ChallengeProgress/ChallengeProgressConcept.ts
+
+```typescript
 import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
@@ -23,7 +32,6 @@ interface CompletionDoc {
   _id: Completion;
   part: Part;
   user: User;
-  challenge: Challenge;
 }
 
 interface UploadedChallengeDoc {
@@ -56,9 +64,6 @@ export default class ChallengeProgressConcept {
     if (uploadedChallenge) {
       return { error: "Challenge already uploaded" };
     }
-
-    await this.uploadedChallenges.insertOne({_id: challenge})
-
     const partDocs: Array<PartDoc> = [];
     for (let week = 1; week <= weeks; week++) {
       for (let day = 1; day <= daysOfWeek; day++) {
@@ -89,8 +94,6 @@ export default class ChallengeProgressConcept {
     await this.uploadedChallenges.deleteOne({ _id: challenge });
 
     await this.parts.deleteMany({ challenge: challenge });
-
-    await this.completions.deleteMany({ challenge: challenge });
     return {};
   }
 
@@ -105,12 +108,11 @@ export default class ChallengeProgressConcept {
     if (!partDoc) {
       return { error: "Part does not exist" };
     }
-    
+
     const completionDoc: CompletionDoc = {
       _id: freshID(),
       part: part,
       user: user,
-      challenge: partDoc.challenge,
     };
 
     await this.completions.insertOne(completionDoc);
@@ -128,10 +130,13 @@ export default class ChallengeProgressConcept {
 
     const output: Array<{ part: Part; day: number; week: number }> = [];
 
-    for (const doc of partDocs) {
-    if (!doc) continue;
-      output.push({ part: doc._id, day: doc.day, week: doc.week });
-    }
+    partDocs.forEach((doc) => {
+      if (!doc) {
+        return [];
+      } else {
+        output.push({ part: doc._id, day: doc.day, week: doc.week });
+      }
+    });
 
     return output;
   }
@@ -196,3 +201,5 @@ export default class ChallengeProgressConcept {
     return [{ allPartsCompleted: completions.length === parts.length }];
   }
 }
+
+```

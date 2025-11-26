@@ -1,3 +1,5 @@
+# file: src/concepts/ChallengeProgress/ChallengeProgressConcept.ts
+```typescript
 import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
@@ -90,7 +92,7 @@ export default class ChallengeProgressConcept {
 
     await this.parts.deleteMany({ challenge: challenge });
 
-    await this.completions.deleteMany({ challenge: challenge });
+    await this.completions.deleteOne({ challenge: challenge });
     return {};
   }
 
@@ -196,3 +198,4 @@ export default class ChallengeProgressConcept {
     return [{ allPartsCompleted: completions.length === parts.length }];
   }
 }
+```
