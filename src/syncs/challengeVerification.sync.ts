@@ -134,7 +134,10 @@ export const RemoveVerificationRequestResponseSuccess: Sync = ({
   ]),
 });
 
-export const RemoveRequestResponseError: Sync = ({ request, error }) => ({
+export const RemoveVerificationRequestResponseError: Sync = ({
+  request,
+  error,
+}) => ({
   when: actions(
     [Requesting.request, { path: "/removeVerificationRequest" }, { request }],
     [ChallengeVerification.removeVerificationRequest, {}, { error }]
