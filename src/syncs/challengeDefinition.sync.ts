@@ -77,7 +77,7 @@ export const CreateChallengeResponseSuccess: Sync = ({
 
 export const CreateChallengeResponseError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "/createGroup" }, { request }],
+    [Requesting.request, { path: "/createChallenge" }, { request }],
     [ChallengeDefinition.createChallenge, {}, { error }]
   ),
   then: actions([Requesting.respond, { request, error }]),

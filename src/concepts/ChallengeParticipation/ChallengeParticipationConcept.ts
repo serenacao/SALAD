@@ -121,6 +121,57 @@ export default class ChallengeParticipationConcept {
     return {};
   }
 
+  async _getInvitationUser({
+    invitation,
+  }: {
+    invitation: Invitation;
+  }): Promise<Array<{ user: User }>> {
+    const invitationDoc = await this.invitations.findOne({ _id: invitation });
+    if (!invitationDoc) {
+      return [];
+    }
+    return [{ user: invitationDoc.user }];
+  }
+
+  async _getInvitationChallenge({
+    invitation,
+  }: {
+    invitation: Invitation;
+  }): Promise<Array<{ challenge: User }>> {
+    const invitationDoc = await this.invitations.findOne({ _id: invitation });
+    if (!invitationDoc) {
+      return [];
+    }
+    return [{ challenge: invitationDoc.challenge }];
+  }
+
+  async _getParticipationUser({
+    participation,
+  }: {
+    participation: Participation;
+  }): Promise<Array<{ user: User }>> {
+    const participationDoc = await this.participations.findOne({
+      _id: participation,
+    });
+    if (!participationDoc) {
+      return [];
+    }
+    return [{ user: participationDoc.user }];
+  }
+
+  async _getParticipationChallenge({
+    participation,
+  }: {
+    participation: Participation;
+  }): Promise<Array<{ challenge: User }>> {
+    const participationDoc = await this.participations.findOne({
+      _id: participation,
+    });
+    if (!participationDoc) {
+      return [];
+    }
+    return [{ challenge: participationDoc.challenge }];
+  }
   async _getChallengeParticipants({
     challenge,
   }: {
