@@ -1,12 +1,14 @@
 import {
   ChallengeVerification,
+  ChallengeDefinition,
+  ChallengeProgress,
   Requesting,
   Session,
   UserAuthentication,
 } from "@concepts";
 import { actions, Sync } from "@engine";
 
-// createVerificationRequest
+// createVerificationRequest (session should belong to requester and should only happen when challenge is open)
 
 export const CreateVerificationRequest: Sync = ({
   session,
@@ -15,6 +17,8 @@ export const CreateVerificationRequest: Sync = ({
   requester,
   approver,
   evidence,
+  challenge,
+  isOpen,
   request,
 }) => ({
   when: actions([
@@ -37,6 +41,17 @@ export const CreateVerificationRequest: Sync = ({
         user: actingUser,
       }
     );
+    frames = await frames.query(
+      ChallengeProgress._getPartChallenge,
+      { part },
+      { challenge }
+    );
+    frames = await frames.query(
+      ChallengeDefinition._isOpen,
+      { challenge },
+      { isOpen }
+    );
+    frames = frames.filter(($) => $[isOpen] === true);
     frames = frames.filter(($) => $[actingUser] === $[requester]);
     return frames;
   },
@@ -145,12 +160,15 @@ export const RemoveVerificationRequestResponseError: Sync = ({
   then: actions([Requesting.respond, { request, error }]),
 });
 
-// verify
+// verify (only approver should verify, and only when challenge is open)
 
 export const VerifyRequest: Sync = ({
   session,
   actingUser,
   verificationRequest,
+  part,
+  challenge,
+  isOpen,
   approver,
   request,
 }) => ({
@@ -176,6 +194,22 @@ export const VerifyRequest: Sync = ({
       { verificationRequest },
       { approver }
     );
+    frames = await frames.query(
+      ChallengeVerification._getRequestPart,
+      { verificationRequest },
+      { part }
+    );
+    frames = await frames.query(
+      ChallengeProgress._getPartChallenge,
+      { part },
+      { challenge }
+    );
+    frames = await frames.query(
+      ChallengeDefinition._isOpen,
+      { challenge },
+      { isOpen }
+    );
+    frames = frames.filter(($) => $[isOpen] === true);
     frames = frames.filter(($) => $[actingUser] === $[approver]);
     return frames;
   },
