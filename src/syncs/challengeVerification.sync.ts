@@ -61,7 +61,7 @@ export const CreateVerificationRequestResponseSuccess: Sync = ({
   then: actions([
     Requesting.respond,
     {
-      status: "requester verification",
+      status: "requested verification",
     },
   ]),
 });
@@ -78,6 +78,69 @@ export const CreateVerificationRequestResponseError: Sync = ({
 });
 
 // removeVerificationRequest
+
+export const RemoveVerificationRequest: Sync = ({
+  session,
+  actingUser,
+  verificationRequest,
+  requester,
+  request,
+}) => ({
+  when: actions([
+    Requesting.request,
+    {
+      path: "/removeVerificationRequest",
+      session,
+      verificationRequest,
+    },
+    { request },
+  ]),
+  where: async (frames) => {
+    frames = await frames.query(
+      Session._getUser,
+      { session },
+      {
+        user: actingUser,
+      }
+    );
+    frames = await frames.query(
+      ChallengeVerification._getRequestRequester,
+      { verificationRequest },
+      { requester }
+    );
+    frames = frames.filter(($) => $[actingUser] === $[requester]);
+    return frames;
+  },
+  then: actions([
+    ChallengeVerification.removeVerificationRequest,
+    {
+      verificationRequest,
+    },
+  ]),
+});
+
+export const RemoveVerificationRequestResponseSuccess: Sync = ({
+  request,
+}) => ({
+  when: actions(
+    [Requesting.request, { path: "/removeVerificationRequest" }, { request }],
+    [ChallengeVerification.removeVerificationRequest, {}, {}]
+  ),
+  then: actions([
+    Requesting.respond,
+    {
+      status: "removed verification request",
+    },
+  ]),
+});
+
+export const RemoveRequestResponseError: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/removeVerificationRequest" }, { request }],
+    [ChallengeVerification.removeVerificationRequest, {}, { error }]
+  ),
+  then: actions([Requesting.respond, { request, error }]),
+});
 
 // verify
 

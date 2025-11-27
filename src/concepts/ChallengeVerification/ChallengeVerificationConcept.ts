@@ -105,6 +105,20 @@ export default class ChallengeVerificationConcept {
     return [{ approver: verificationRequestDoc.approver }];
   }
 
+  async _getRequestRequester({
+    verificationRequest,
+  }: {
+    verificationRequest: VerificationRequest;
+  }): Promise<Array<{ requester: User }>> {
+    const verificationRequestDoc = await this.verificationRequests.findOne({
+      _id: verificationRequest,
+    });
+    if (!verificationRequestDoc) {
+      return [];
+    }
+    return [{ requester: verificationRequestDoc.requester }];
+  }
+
   async _getRequestDetails({
     verificationRequests,
   }: {
