@@ -1,12 +1,14 @@
 import {
   ChallengeVerification,
+  ChallengeDefinition,
+  ChallengeProgress,
   Requesting,
   Session,
   UserAuthentication,
 } from "@concepts";
 import { actions, Sync } from "@engine";
 
-// createVerificationRequest
+// createVerificationRequest (session should belong to requester and should only happen when challenge is open)
 
 export const CreateVerificationRequest: Sync = ({
   session,
@@ -15,6 +17,8 @@ export const CreateVerificationRequest: Sync = ({
   requester,
   approver,
   evidence,
+  challenge,
+  isOpen,
   request,
 }) => ({
   when: actions([
@@ -37,6 +41,17 @@ export const CreateVerificationRequest: Sync = ({
         user: actingUser,
       }
     );
+    frames = await frames.query(
+      ChallengeProgress._getPartChallenge,
+      { part },
+      { challenge }
+    );
+    frames = await frames.query(
+      ChallengeDefinition._isOpen,
+      { challenge },
+      { isOpen }
+    );
+    frames = frames.filter(($) => $[isOpen] === true);
     frames = frames.filter(($) => $[actingUser] === $[requester]);
     return frames;
   },
@@ -53,15 +68,21 @@ export const CreateVerificationRequest: Sync = ({
 
 export const CreateVerificationRequestResponseSuccess: Sync = ({
   request,
+  verificationRequest,
 }) => ({
   when: actions(
     [Requesting.request, { path: "/createVerificationRequest" }, { request }],
-    [ChallengeVerification.createVerificationRequest, {}, {}]
+    [
+      ChallengeVerification.createVerificationRequest,
+      {},
+      { verificationRequest },
+    ]
   ),
   then: actions([
     Requesting.respond,
     {
-      status: "requester verification",
+      verificationRequest,
+      status: "requested verification",
     },
   ]),
 });
@@ -79,12 +100,76 @@ export const CreateVerificationRequestResponseError: Sync = ({
 
 // removeVerificationRequest
 
-// verify
+export const RemoveVerificationRequest: Sync = ({
+  session,
+  actingUser,
+  verificationRequest,
+  requester,
+  request,
+}) => ({
+  when: actions([
+    Requesting.request,
+    {
+      path: "/removeVerificationRequest",
+      session,
+      verificationRequest,
+    },
+    { request },
+  ]),
+  where: async (frames) => {
+    frames = await frames.query(
+      Session._getUser,
+      { session },
+      {
+        user: actingUser,
+      }
+    );
+    frames = await frames.query(
+      ChallengeVerification._getRequestRequester,
+      { verificationRequest },
+      { requester }
+    );
+    frames = frames.filter(($) => $[actingUser] === $[requester]);
+    return frames;
+  },
+  then: actions([
+    ChallengeVerification.removeVerificationRequest,
+    {
+      verificationRequest,
+    },
+  ]),
+});
+
+export const RemoveVerificationResponseSuccess: Sync = ({ request }) => ({
+  when: actions(
+    [Requesting.request, { path: "/removeVerificationRequest" }, { request }],
+    [ChallengeVerification.removeVerificationRequest, {}, {}]
+  ),
+  then: actions([
+    Requesting.respond,
+    {
+      status: "removed verification request",
+    },
+  ]),
+});
+
+export const RemoveVerificationResponseError: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/removeVerificationRequest" }, { request }],
+    [ChallengeVerification.removeVerificationRequest, {}, { error }]
+  ),
+  then: actions([Requesting.respond, { request, error }]),
+});
+
+// verify (only approver should verify, and only when challenge is open)
 
 export const VerifyRequest: Sync = ({
   session,
   actingUser,
   verificationRequest,
+  part,
+  challenge,
+  isOpen,
   approver,
   request,
 }) => ({
@@ -110,6 +195,22 @@ export const VerifyRequest: Sync = ({
       { verificationRequest },
       { approver }
     );
+    frames = await frames.query(
+      ChallengeVerification._getRequestPart,
+      { verificationRequest },
+      { part }
+    );
+    frames = await frames.query(
+      ChallengeProgress._getPartChallenge,
+      { part },
+      { challenge }
+    );
+    frames = await frames.query(
+      ChallengeDefinition._isOpen,
+      { challenge },
+      { isOpen }
+    );
+    frames = frames.filter(($) => $[isOpen] === true);
     frames = frames.filter(($) => $[actingUser] === $[approver]);
     return frames;
   },
@@ -117,6 +218,36 @@ export const VerifyRequest: Sync = ({
     ChallengeVerification.verify,
     {
       verificationRequest,
+    },
+  ]),
+});
+
+export const VerifyCompletePart: Sync = ({
+  verificationRequest,
+  part,
+  user,
+}) => ({
+  when: actions([ChallengeVerification.verify, { verificationRequest }, {}]),
+  where: async (frames) => {
+    frames = await frames.query(
+      ChallengeVerification._getRequestPart,
+      { verificationRequest },
+      {
+        part,
+      }
+    );
+    frames = await frames.query(
+      ChallengeVerification._getRequestRequester,
+      { verificationRequest },
+      { requester: user }
+    );
+    return frames;
+  },
+  then: actions([
+    ChallengeProgress.completePart,
+    {
+      part,
+      user,
     },
   ]),
 });

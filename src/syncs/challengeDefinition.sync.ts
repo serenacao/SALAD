@@ -1,5 +1,6 @@
 import {
   ChallengeDefinition,
+  ChallengeProgress,
   Requesting,
   Session,
   UserAuthentication,
@@ -10,7 +11,6 @@ import { actions, Sync } from "@engine";
 
 export const CreateChallengeRequest: Sync = ({
   session,
-  actingUser,
   exercise,
   level,
   info,
@@ -29,7 +29,6 @@ export const CreateChallengeRequest: Sync = ({
       weeks,
       level,
       info,
-      creator,
     },
     { request },
   ]),
@@ -38,10 +37,9 @@ export const CreateChallengeRequest: Sync = ({
       Session._getUser,
       { session },
       {
-        user: actingUser,
+        user: creator,
       }
     );
-    frames = frames.filter(($) => $[actingUser] === $[creator]);
     return frames;
   },
   then: actions([
@@ -53,6 +51,19 @@ export const CreateChallengeRequest: Sync = ({
       level,
       info,
       creator,
+    },
+  ]),
+});
+
+export const CreateChallengeUploadChallenge: Sync = ({ challenge }) => ({
+  when: actions([ChallengeDefinition.createChallenge, {}, { challenge }]),
+  where: async (frames) => {
+    return frames;
+  },
+  then: actions([
+    ChallengeProgress.uploadChallenge,
+    {
+      challenge,
     },
   ]),
 });
@@ -77,7 +88,7 @@ export const CreateChallengeResponseSuccess: Sync = ({
 
 export const CreateChallengeResponseError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "/createGroup" }, { request }],
+    [Requesting.request, { path: "/createChallenge" }, { request }],
     [ChallengeDefinition.createChallenge, {}, { error }]
   ),
   then: actions([Requesting.respond, { request, error }]),
@@ -245,6 +256,19 @@ export const DeleteChallengeRequest: Sync = ({
   },
   then: actions([
     ChallengeDefinition.deleteChallenge,
+    {
+      challenge,
+    },
+  ]),
+});
+
+export const DeleteChallengeRemoveChallenge: Sync = ({ challenge }) => ({
+  when: actions([ChallengeDefinition.deleteChallenge, { challenge }, {}]),
+  where: async (frames) => {
+    return frames;
+  },
+  then: actions([
+    ChallengeProgress.removeChallenge,
     {
       challenge,
     },

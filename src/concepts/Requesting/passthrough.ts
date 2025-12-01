@@ -78,11 +78,22 @@ export const exclusions: Array<string> = [
   "/api/Group/deleteGroup",
   "/api/Group/removeMember",
 
-  "/api/Challenges/verify",
-  "/api/Challenges/createChallenge",
-  "/api/Challenges/openChallenge",
-  "/api/Challenges/closeChallenge",
-  "/api/Challenges/deleteChallenge",
-  "/api/Challenges/removeFromChallenge",
-  "/api/Challenges/createVerificationRequest",
+  "/api/ChallengeDefinition/createChallenge",
+  "/api/ChallengeDefinition/openChallenge",
+  "/api/ChallengeDefinition/closeChallenge",
+  "/api/ChallengeDefinition/deleteChallenge",
+
+  "/api/ChallengeParticipation/createInvitation",
+  "/api/ChallengeParticipation/acceptInvitation",
+  "/api/ChallengeParticipation/removeInvitation",
+  "/api/ChallengeParticipation/removeParticipation",
+  "/api/ChallengeParticipation/completeChallenge",
+
+  "/api/ChallengeProgress/uploadChallenge",
+  "/api/ChallengeProgress/removeChallenge",
+  "/api/ChallengeProgress/completePart",
+
+  "/api/ChallengeVerification/createVerificationRequest",
+  "/api/ChallengeVerification/verify",
+  "/api/ChallengeVerification/removeVerificationRequest",
 ];
