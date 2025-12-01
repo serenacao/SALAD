@@ -209,7 +209,7 @@ export const RemoveInvitationResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
-      status: "accepted invitation and created participation",
+      status: "removed invitation",
     },
   ]),
 });
@@ -286,7 +286,7 @@ export const RemoveParticipationResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
-      status: "accepted invitation and created participation",
+      status: "removed participation",
     },
   ]),
 });
@@ -305,6 +305,7 @@ export const CompletePartCompleteChallenge: Sync = ({
   part,
   challenge,
   user,
+  allPartsCompleted,
 }) => ({
   when: actions([ChallengeProgress.completePart, { part, user }, {}]),
   where: async (frames) => {
@@ -315,11 +316,16 @@ export const CompletePartCompleteChallenge: Sync = ({
         challenge,
       }
     );
-
-    frames = frames.filter(
-      ($) => $[actingUser] === $[user] || $[actingUser] === $[creator]
+    frames = await frames.query(
+      ChallengeProgress._allPartsCompleted,
+      { user, challenge },
+      { allPartsCompleted }
     );
+    frames = frames.filter(($) => $[allPartsCompleted] === true);
     return frames;
   },
-  then: actions([]),
+  then: actions([
+    ChallengeParticipation.completeChallenge,
+    { user, challenge },
+  ]),
 });
