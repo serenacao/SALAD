@@ -1,5 +1,6 @@
 import {
   ChallengeDefinition,
+  ChallengeProgress,
   Requesting,
   Session,
   UserAuthentication,
@@ -57,6 +58,19 @@ export const CreateChallengeRequest: Sync = ({
   ]),
 });
 
+export const CreateChallengeUploadChallenge: Sync = ({ challenge }) => ({
+  when: actions([ChallengeDefinition.createChallenge, {}, { challenge }]),
+  where: async (frames) => {
+    return frames;
+  },
+  then: actions([
+    ChallengeProgress.uploadChallenge,
+    {
+      challenge,
+    },
+  ]),
+});
+
 export const CreateChallengeResponseSuccess: Sync = ({
   request,
 
@@ -77,7 +91,7 @@ export const CreateChallengeResponseSuccess: Sync = ({
 
 export const CreateChallengeResponseError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "/createGroup" }, { request }],
+    [Requesting.request, { path: "/createChallenge" }, { request }],
     [ChallengeDefinition.createChallenge, {}, { error }]
   ),
   then: actions([Requesting.respond, { request, error }]),
@@ -245,6 +259,19 @@ export const DeleteChallengeRequest: Sync = ({
   },
   then: actions([
     ChallengeDefinition.deleteChallenge,
+    {
+      challenge,
+    },
+  ]),
+});
+
+export const DeleteChallengeRemoveChallenge: Sync = ({ challenge }) => ({
+  when: actions([ChallengeDefinition.deleteChallenge, { challenge }, {}]),
+  where: async (frames) => {
+    return frames;
+  },
+  then: actions([
+    ChallengeProgress.removeChallenge,
     {
       challenge,
     },
