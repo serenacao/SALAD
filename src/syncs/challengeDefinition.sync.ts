@@ -1,5 +1,6 @@
 import {
   ChallengeDefinition,
+  ChallengeProgress,
   Requesting,
   Session,
   UserAuthentication,
@@ -53,6 +54,19 @@ export const CreateChallengeRequest: Sync = ({
       level,
       info,
       creator,
+    },
+  ]),
+});
+
+export const CreateChallengeUploadChallenge: Sync = ({ challenge }) => ({
+  when: actions([ChallengeDefinition.createChallenge, {}, { challenge }]),
+  where: async (frames) => {
+    return frames;
+  },
+  then: actions([
+    ChallengeProgress.uploadChallenge,
+    {
+      challenge,
     },
   ]),
 });
@@ -245,6 +259,19 @@ export const DeleteChallengeRequest: Sync = ({
   },
   then: actions([
     ChallengeDefinition.deleteChallenge,
+    {
+      challenge,
+    },
+  ]),
+});
+
+export const DeleteChallengeRemoveChallenge: Sync = ({ challenge }) => ({
+  when: actions([ChallengeDefinition.deleteChallenge, { challenge }, {}]),
+  where: async (frames) => {
+    return frames;
+  },
+  then: actions([
+    ChallengeProgress.removeChallenge,
     {
       challenge,
     },

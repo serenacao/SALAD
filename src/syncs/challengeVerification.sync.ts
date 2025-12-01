@@ -221,6 +221,36 @@ export const VerifyRequest: Sync = ({
   ]),
 });
 
+export const VerifyCompletePart: Sync = ({
+  verificationRequest,
+  part,
+  user,
+}) => ({
+  when: actions([ChallengeVerification.verify, { verificationRequest }, {}]),
+  where: async (frames) => {
+    frames = await frames.query(
+      ChallengeVerification._getRequestPart,
+      { verificationRequest },
+      {
+        part,
+      }
+    );
+    frames = await frames.query(
+      ChallengeVerification._getRequestRequester,
+      { verificationRequest },
+      { requester: user }
+    );
+    return frames;
+  },
+  then: actions([
+    ChallengeProgress.completePart,
+    {
+      part,
+      user,
+    },
+  ]),
+});
+
 export const VerifyRequestResponseSuccess: Sync = ({ request }) => ({
   when: actions(
     [Requesting.request, { path: "/verifyRequest" }, { request }],
