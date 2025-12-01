@@ -4,6 +4,7 @@ import {
   Requesting,
   Session,
   UserAuthentication,
+  ChallengeProgress,
 } from "@concepts";
 import { actions, Sync } from "@engine";
 
@@ -208,7 +209,7 @@ export const RemoveInvitationResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
-      status: "accepted invitation and created participation",
+      status: "removed invitation",
     },
   ]),
 });
@@ -285,7 +286,7 @@ export const RemoveParticipationResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
-      status: "accepted invitation and created participation",
+      status: "removed participation",
     },
   ]),
 });
@@ -296,4 +297,35 @@ export const RemoveParticipationResponseError: Sync = ({ request, error }) => ({
     [ChallengeParticipation.removeParticipation, {}, { error }]
   ),
   then: actions([Requesting.respond, { request, error }]),
+});
+
+// completeChallenge (should fire only when all parts are completed)
+
+export const CompletePartCompleteChallenge: Sync = ({
+  part,
+  challenge,
+  user,
+  allPartsCompleted,
+}) => ({
+  when: actions([ChallengeProgress.completePart, { part, user }, {}]),
+  where: async (frames) => {
+    frames = await frames.query(
+      ChallengeProgress._getPartChallenge,
+      { part },
+      {
+        challenge,
+      }
+    );
+    frames = await frames.query(
+      ChallengeProgress._allPartsCompleted,
+      { user, challenge },
+      { allPartsCompleted }
+    );
+    frames = frames.filter(($) => $[allPartsCompleted] === true);
+    return frames;
+  },
+  then: actions([
+    ChallengeParticipation.completeChallenge,
+    { user, challenge },
+  ]),
 });

@@ -68,14 +68,20 @@ export const CreateVerificationRequest: Sync = ({
 
 export const CreateVerificationRequestResponseSuccess: Sync = ({
   request,
+  verificationRequest,
 }) => ({
   when: actions(
     [Requesting.request, { path: "/createVerificationRequest" }, { request }],
-    [ChallengeVerification.createVerificationRequest, {}, {}]
+    [
+      ChallengeVerification.createVerificationRequest,
+      {},
+      { verificationRequest },
+    ]
   ),
   then: actions([
     Requesting.respond,
     {
+      verificationRequest,
       status: "requested verification",
     },
   ]),
@@ -134,9 +140,7 @@ export const RemoveVerificationRequest: Sync = ({
   ]),
 });
 
-export const RemoveVerificationRequestResponseSuccess: Sync = ({
-  request,
-}) => ({
+export const RemoveVerificationResponseSuccess: Sync = ({ request }) => ({
   when: actions(
     [Requesting.request, { path: "/removeVerificationRequest" }, { request }],
     [ChallengeVerification.removeVerificationRequest, {}, {}]
@@ -149,10 +153,7 @@ export const RemoveVerificationRequestResponseSuccess: Sync = ({
   ]),
 });
 
-export const RemoveVerificationRequestResponseError: Sync = ({
-  request,
-  error,
-}) => ({
+export const RemoveVerificationResponseError: Sync = ({ request, error }) => ({
   when: actions(
     [Requesting.request, { path: "/removeVerificationRequest" }, { request }],
     [ChallengeVerification.removeVerificationRequest, {}, { error }]

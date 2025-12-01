@@ -11,7 +11,6 @@ import { actions, Sync } from "@engine";
 
 export const CreateChallengeRequest: Sync = ({
   session,
-  actingUser,
   exercise,
   level,
   info,
@@ -30,7 +29,6 @@ export const CreateChallengeRequest: Sync = ({
       weeks,
       level,
       info,
-      creator,
     },
     { request },
   ]),
@@ -39,10 +37,9 @@ export const CreateChallengeRequest: Sync = ({
       Session._getUser,
       { session },
       {
-        user: actingUser,
+        user: creator,
       }
     );
-    frames = frames.filter(($) => $[actingUser] === $[creator]);
     return frames;
   },
   then: actions([
