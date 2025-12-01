@@ -174,5 +174,9 @@ export default class FriendingConcept {
     return friendDocs.map((doc) => ({requester: doc.requester, receiver: doc.receiver}))
   }
 
+  async _getAllRequests(): Promise<FriendRequestDoc[]>{
+    return await this.friendRequests.find().toArray()
+  }
+
 
 }

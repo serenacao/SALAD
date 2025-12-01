@@ -225,7 +225,7 @@ export default class ChatConcept {
    */
   async _getChatBetweenUsers(
     { userA, userB }: { userA: User; userB: User },
-  ): Promise<Array<{ chat: Chat }> | { error: string }> {
+  ): Promise<Array<{ chat: Chat }>> {
     const chatDoc = await this.chats.findOne({
       $or: [
         { user1: userA, user2: userB },
@@ -261,11 +261,11 @@ export default class ChatConcept {
    */
   async _getDMsInChat(
     { chat }: { chat: Chat },
-  ): Promise<Array<{ dm: { id: DM; time: Date; message: string; sender: User; receiver: User } }> | { error: string }> {
+  ): Promise<Array<{ dm: { id: DM; time: Date; message: string; sender: User; receiver: User } }>> {
     const chatDoc = await this.chats.findOne({ _id: chat });
 
     if (!chatDoc || (!chatDoc.user1Accessible && !chatDoc.user2Accessible)) {
-      return { error: "Chat not found or is inaccessible" };
+      return [];
     }
 
     const dms = await this.dms.find({ chatId: chat }).sort({ time: 1 }).toArray();
@@ -290,7 +290,7 @@ export default class ChatConcept {
    */
   async _getAccessibleChatsForUser(
     { user }: { user: User },
-  ): Promise<Array<{ chat: Chat }> | { error: string }> {
+  ): Promise<Array<{ chat: Chat }>> {
     const chats = await this.chats.find({
       $or: [
         { user1: user, user1Accessible: true },
