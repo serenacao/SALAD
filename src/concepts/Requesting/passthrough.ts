@@ -87,8 +87,11 @@ export const exclusions: Array<string> = [
   "/api/ChallengeParticipation/acceptInvitation",
   "/api/ChallengeParticipation/removeInvitation",
   "/api/ChallengeParticipation/removeParticipation",
+  "/api/ChallengeParticipation/completeChallenge",
 
   "/api/ChallengeProgress/uploadChallenge",
+  "/api/ChallengeProgress/removeChallenge",
+  "/api/ChallengeProgress/completePart",
 
   "/api/ChallengeVerification/createVerificationRequest",
   "/api/ChallengeVerification/verify",

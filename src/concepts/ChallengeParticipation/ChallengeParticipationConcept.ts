@@ -104,12 +104,15 @@ export default class ChallengeParticipationConcept {
   }
 
   async completeChallenge({
-    participation,
+    user,
+    challenge,
   }: {
-    participation: Participation;
+    user: User;
+    challenge: Challenge;
   }): Promise<Empty | { error: string }> {
     const participationDoc = await this.participations.findOne({
-      _id: participation,
+      user: user,
+      challenge: challenge,
     });
     if (!participationDoc) {
       return { error: "Participation does not exist" };

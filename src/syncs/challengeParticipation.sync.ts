@@ -4,6 +4,7 @@ import {
   Requesting,
   Session,
   UserAuthentication,
+  ChallengeProgress,
 } from "@concepts";
 import { actions, Sync } from "@engine";
 
@@ -296,4 +297,29 @@ export const RemoveParticipationResponseError: Sync = ({ request, error }) => ({
     [ChallengeParticipation.removeParticipation, {}, { error }]
   ),
   then: actions([Requesting.respond, { request, error }]),
+});
+
+// completeChallenge (should fire only when all parts are completed)
+
+export const CompletePartCompleteChallenge: Sync = ({
+  part,
+  challenge,
+  user,
+}) => ({
+  when: actions([ChallengeProgress.completePart, { part, user }, {}]),
+  where: async (frames) => {
+    frames = await frames.query(
+      ChallengeProgress._getPartChallenge,
+      { part },
+      {
+        challenge,
+      }
+    );
+
+    frames = frames.filter(
+      ($) => $[actingUser] === $[user] || $[actingUser] === $[creator]
+    );
+    return frames;
+  },
+  then: actions([]),
 });
