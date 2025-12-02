@@ -56,12 +56,22 @@ export const CreateChallengeRequest: Sync = ({
   ]),
 });
 
-export const CreateChallengeUploadChallenge: Sync = ({ challenge }) => ({
-  when: actions([ChallengeDefinition.createChallenge, {}, { challenge }]),
+export const CreateChallengeUploadChallenge: Sync = ({
+  challenge,
+  daysPerWeek,
+  weeks,
+}) => ({
+  when: actions([
+    ChallengeDefinition.createChallenge,
+    { daysPerWeek, weeks },
+    { challenge },
+  ]),
   then: actions([
     ChallengeProgress.uploadChallenge,
     {
       challenge,
+      daysPerWeek,
+      weeks,
     },
   ]),
 });
