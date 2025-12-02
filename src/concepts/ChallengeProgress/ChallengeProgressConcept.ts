@@ -57,7 +57,7 @@ export default class ChallengeProgressConcept {
       return { error: "Challenge already uploaded" };
     }
 
-    await this.uploadedChallenges.insertOne({_id: challenge})
+    await this.uploadedChallenges.insertOne({ _id: challenge });
 
     const partDocs: Array<PartDoc> = [];
     for (let week = 1; week <= weeks; week++) {
@@ -105,7 +105,7 @@ export default class ChallengeProgressConcept {
     if (!partDoc) {
       return { error: "Part does not exist" };
     }
-    
+
     const completionDoc: CompletionDoc = {
       _id: freshID(),
       part: part,
@@ -129,7 +129,7 @@ export default class ChallengeProgressConcept {
     const output: Array<{ part: Part; day: number; week: number }> = [];
 
     for (const doc of partDocs) {
-    if (!doc) continue;
+      if (!doc) continue;
       output.push({ part: doc._id, day: doc.day, week: doc.week });
     }
 
@@ -194,5 +194,17 @@ export default class ChallengeProgressConcept {
       .toArray();
     const parts = await this.parts.find({ challenge: challenge }).toArray();
     return [{ allPartsCompleted: completions.length === parts.length }];
+  }
+
+  async _getPartChallenge({
+    part,
+  }: {
+    part: Part;
+  }): Promise<Array<{ challenge: Challenge }>> {
+    const partDoc = await this.parts.findOne({ _id: part });
+    if (!partDoc) {
+      return [];
+    }
+    return [{ challenge: partDoc.challenge }];
   }
 }
