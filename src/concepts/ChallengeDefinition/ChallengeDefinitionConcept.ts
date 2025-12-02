@@ -148,6 +148,9 @@ export default class ChallengeDefinitionConcept {
       return { error: "Weeks must be a positive integer." };
     }
 
+    console.log(
+      "Inputs validated for createChallenge, attempting to create challenge"
+    );
     for (const [key, value] of Object.entries(info)) {
       if (key === "reps" || key === "sets") {
         if (typeof value !== "number") {
@@ -271,12 +274,12 @@ export default class ChallengeDefinitionConcept {
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ result: boolean }>> {
+  }): Promise<Array<{ isOpen: boolean }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
-      return [{ result: false }];
+      return [{ isOpen: false }];
     }
-    return [{ result: existingChallenge.open }];
+    return [{ isOpen: existingChallenge.open }];
   }
 
   /**
@@ -365,11 +368,24 @@ export default class ChallengeDefinitionConcept {
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ bonusPoints: number }>> {
+  }): Promise<Array<{ points: number }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
       return [];
     }
-    return [{ bonusPoints: existingChallenge.bonusPoints }];
+    return [{ points: existingChallenge.bonusPoints }];
+  }
+
+  async _getCreatedChallenges({
+    user,
+  }: {
+    user: User;
+  }): Promise<Array<{ challenge: Challenge }>> {
+    const challengeDocs = await this.challenges
+      .find({ creator: user })
+      .toArray();
+    const challenges: Array<{ challenge: Challenge }> = [];
+    challengeDocs.forEach((doc) => challenges.push({ challenge: doc._id }));
+    return challenges;
   }
 }

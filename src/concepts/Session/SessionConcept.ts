@@ -63,6 +63,7 @@ export default class SessionConcept {
   }: {
     session: Session;
   }): Promise<Array<{ user: User }>> {
+    console.log("Retrieving user for session");
     const sessionDoc = await this.sessions.findOne({ _id: session });
     assert(sessionDoc, "Session does not exist");
     return [{ user: sessionDoc.user }];

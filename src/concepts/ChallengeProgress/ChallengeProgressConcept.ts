@@ -50,6 +50,7 @@ export default class ChallengeProgressConcept {
     daysOfWeek: number;
     weeks: number;
   }): Promise<Empty | { error: string }> {
+    console.log("Attempting to upload challenge");
     const uploadedChallenge = await this.uploadedChallenges.findOne({
       _id: challenge,
     });

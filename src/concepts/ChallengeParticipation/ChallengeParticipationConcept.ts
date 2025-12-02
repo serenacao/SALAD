@@ -175,22 +175,22 @@ export default class ChallengeParticipationConcept {
     }
     return [{ challenge: participationDoc.challenge }];
   }
-  async _getChallengeParticipants({
+  async _getChallengeParticipations({
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ user: User }>> {
+  }): Promise<Array<{ participation: Participation; user: User }>> {
     const participations = await this.participations
       .find({ challenge: challenge })
       .toArray();
-    const users: Array<{ user: User }> = [];
+    const users: Array<{ user: User; participation: Participation }> = [];
     participations.forEach((doc) => {
-      users.push({ user: doc.user });
+      users.push({ user: doc.user, participation: doc._id });
     });
     return users;
   }
 
-  async _getChallengeInvitees({
+  async _getChallengeInvitations({
     challenge,
   }: {
     challenge: Challenge;
@@ -209,13 +209,16 @@ export default class ChallengeParticipationConcept {
     user,
   }: {
     user: User;
-  }): Promise<Array<{ challenge: Challenge }>> {
+  }): Promise<Array<{ participation: Participation; challenge: Challenge }>> {
     const participations = await this.participations
       .find({ user: user })
       .toArray();
-    const challenges: Array<{ challenge: Challenge }> = [];
+    const challenges: Array<{
+      participation: Participation;
+      challenge: Challenge;
+    }> = [];
     participations.forEach((doc) => {
-      challenges.push({ challenge: doc.challenge });
+      challenges.push({ participation: doc._id, challenge: doc.challenge });
     });
     return challenges;
   }
@@ -224,11 +227,12 @@ export default class ChallengeParticipationConcept {
     user,
   }: {
     user: User;
-  }): Promise<Array<{ challenge: Challenge }>> {
+  }): Promise<Array<{ invitation: Invitation; challenge: Challenge }>> {
     const invitations = await this.invitations.find({ user: user }).toArray();
-    const challenges: Array<{ challenge: Challenge }> = [];
+    const challenges: Array<{ challenge: Challenge; invitation: Invitation }> =
+      [];
     invitations.forEach((doc) => {
-      challenges.push({ challenge: doc.challenge });
+      challenges.push({ challenge: doc.challenge, invitation: doc._id });
     });
     return challenges;
   }
