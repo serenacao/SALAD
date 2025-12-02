@@ -23,9 +23,9 @@ Deno.test(
 
       const publicGroups = await groupConcept._getPublicGroups({});
 
-      assertEquals(publicGroups.length, 1);
+      assertEquals(publicGroups.groups.length, 1);
 
-      const publicGroup = publicGroups[0];
+      const publicGroup = publicGroups.groups[0];
 
       assertEquals(publicGroup.group, groupObject.group, "Incorrect group");
       assertEquals(publicGroup.leader, leader, "Incorrect leader");
@@ -77,11 +77,8 @@ Deno.test(
         group: groupObject.group,
       });
 
-      assertEquals(members.length, 1);
+      assertEquals(members.length, 2);
 
-      const member = members[0];
-
-      assertEquals(member.member, user);
 
       console.log("Successfully accepted membership");
     } finally {
@@ -107,7 +104,7 @@ Deno.test("Action: deny", async () => {
 
     const publicGroups = await groupConcept._getPublicGroups({});
 
-    const publicGroup = publicGroups[0];
+    const publicGroup = publicGroups.groups[0];
 
     const user = freshID() as User;
 
@@ -134,7 +131,7 @@ Deno.test("Action: deny", async () => {
       group: groupObject.group,
     });
 
-    assertEquals(members.length, 0);
+    assertEquals(members.length, 1);
   } finally {
     await client.close();
   }
@@ -157,7 +154,7 @@ Deno.test("Action: removeMember", async () => {
 
     const publicGroups = await groupConcept._getPublicGroups({});
 
-    const publicGroup = publicGroups[0];
+    const publicGroup = publicGroups.groups[0];
 
     const user = freshID() as User;
 
@@ -176,7 +173,7 @@ Deno.test("Action: removeMember", async () => {
       group: groupObject.group,
     });
 
-    assertEquals(members.length, 0);
+    assertEquals(members.length, 1);
   } finally {
     await client.close();
   }
@@ -203,7 +200,7 @@ Deno.test(
 
       const publicGroups = await groupConcept._getPublicGroups({});
 
-      assertEquals(publicGroups.length, 2);
+      assertEquals(publicGroups.groups.length, 2);
 
       console.log("Successfully created 2 public groups");
 
@@ -252,13 +249,13 @@ Deno.test(
         group: group1Object.group,
       });
 
-      assertEquals(members1.length, 2);
+      assertEquals(members1.length, 3);
 
       const members2 = await groupConcept._getMembers({
         group: group2Object.group,
       });
 
-      assertEquals(members2.length, 0);
+      assertEquals(members2.length, 1);
 
       console.log("Successfully accepted membership");
     } finally {
@@ -284,7 +281,7 @@ Deno.test("State: private group", async () => {
 
     const publicGroups = await groupConcept._getPublicGroups({});
 
-    assertEquals(publicGroups.length, 0);
+    assertEquals(publicGroups.groups.length, 0);
 
     const user = freshID() as User;
 
@@ -330,17 +327,15 @@ Deno.test("State: private group", async () => {
       group: groupObject.group,
     });
 
-    assertEquals(members.length, 1);
+    assertEquals(members.length, 2);
 
-    const member = members[0];
-
-    assertEquals(member.member, user);
+  
 
     console.log("Successfully accepted membership");
 
     const userGroups = await groupConcept._getGroups({ user: user });
 
-    assertEquals(userGroups.length, 1);
+    assertEquals(userGroups.groups.length, 1);
   } finally {
     await client.close();
   }

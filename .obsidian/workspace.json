@@ -171,6 +171,9 @@
   },
   "active": "b90e879cb405d072",
   "lastOpenFiles": [
+    "src/syncs/syncs.ts",
+    "src/concepts/test_concepts.ts",
+    "src/concepts/concepts.ts",
     "src/syncs/challengeProgress.sync.ts",
     "src/syncs/challengeParticipation.sync.ts",
     "design/Checkpoint Alpha New Development Plan.pdf",
@@ -203,9 +206,6 @@
     "context/design/concepts/ChallengeVerification/Testing.md/steps/_.ae61325b.md",
     "context/design/concepts/ChallengeVerification/Testing.md/steps",
     "context/design/concepts/ChallengeVerification",
-    "src/concepts/ChallengeProgress/ChallengeProgressConcept.test.ts",
-    "context/design/concepts/ChallengeProgress/Testing.md/steps",
-    "context/design/concepts/ChallengeProgress",
-    "src/concepts/ChallengeParticipation/ChallengeParticipationConcept.test.ts"
+    "src/concepts/ChallengeProgress/ChallengeProgressConcept.test.ts"
   ]
 }
