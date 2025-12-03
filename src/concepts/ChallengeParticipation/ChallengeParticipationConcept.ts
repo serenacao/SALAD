@@ -182,7 +182,7 @@ export default class ChallengeParticipationConcept {
     }
     return [{ challenge: participationDoc.challenge }];
   }
-  async _getChallengeParticipants({
+  async _getChallengeParticipations({
     challenge,
   }: {
     challenge: Challenge;
@@ -197,7 +197,7 @@ export default class ChallengeParticipationConcept {
     return users;
   }
 
-  async _getChallengeInvitees({
+  async _getChallengeInvitations({
     challenge,
   }: {
     challenge: Challenge;
