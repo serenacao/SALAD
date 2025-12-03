@@ -4,7 +4,7 @@
   - where: Sessioning: User associated with session is requester
   - then: Chat.startChat(requester, reciever)
 
-- Start Chat Response
+- Friend Request Response
   - when: Chat.startChat():(chat)
   - then: Requesting.respond(chat)
 
