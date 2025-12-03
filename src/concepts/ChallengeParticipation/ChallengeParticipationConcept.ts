@@ -1,4 +1,4 @@
-import { Collection, Db } from "npm:mongodb";
+import { Collection, Db, Document } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
 import { assert } from "node:console";
@@ -186,13 +186,13 @@ export default class ChallengeParticipationConcept {
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ user: User }>> {
+  }): Promise<Array<{ user: User; participation: Participation }>> {
     const participations = await this.participations
       .find({ challenge: challenge })
       .toArray();
-    const users: Array<{ user: User }> = [];
+    const users: Array<{ user: User; participation: Participation }> = [];
     participations.forEach((doc) => {
-      users.push({ user: doc.user });
+      users.push({ user: doc.user, participation: doc._id });
     });
     return users;
   }
@@ -201,13 +201,13 @@ export default class ChallengeParticipationConcept {
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ user: User }>> {
+  }): Promise<Array<{ user: User; invitation: Invitation }>> {
     const invitations = await this.invitations
       .find({ challenge: challenge })
       .toArray();
-    const users: Array<{ user: User }> = [];
+    const users: Array<{ user: User; invitation: Invitation }> = [];
     invitations.forEach((doc) => {
-      users.push({ user: doc.user });
+      users.push({ user: doc.user, invitation: doc._id });
     });
     return users;
   }
@@ -216,13 +216,16 @@ export default class ChallengeParticipationConcept {
     user,
   }: {
     user: User;
-  }): Promise<Array<{ challenge: Challenge }>> {
+  }): Promise<Array<{ challenge: Challenge; participation: Participation }>> {
     const participations = await this.participations
       .find({ user: user })
       .toArray();
-    const challenges: Array<{ challenge: Challenge }> = [];
+    const challenges: Array<{
+      challenge: Challenge;
+      participation: Participation;
+    }> = [];
     participations.forEach((doc) => {
-      challenges.push({ challenge: doc.challenge });
+      challenges.push({ challenge: doc.challenge, participation: doc._id });
     });
     return challenges;
   }
@@ -231,11 +234,12 @@ export default class ChallengeParticipationConcept {
     user,
   }: {
     user: User;
-  }): Promise<Array<{ challenge: Challenge }>> {
+  }): Promise<Array<{ challenge: Challenge; invitation: Invitation }>> {
     const invitations = await this.invitations.find({ user: user }).toArray();
-    const challenges: Array<{ challenge: Challenge }> = [];
+    const challenges: Array<{ challenge: Challenge; invitation: Invitation }> =
+      [];
     invitations.forEach((doc) => {
-      challenges.push({ challenge: doc.challenge });
+      challenges.push({ challenge: doc.challenge, invitation: doc._id });
     });
     return challenges;
   }
