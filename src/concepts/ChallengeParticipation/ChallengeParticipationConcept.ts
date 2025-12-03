@@ -69,6 +69,7 @@ export default class ChallengeParticipationConcept {
     if (!invitationDoc) {
       return { error: "Invitation does not exist" };
     }
+    await this.invitations.deleteOne({ _id: invitationDoc._id });
     const participation = freshID();
     const participationDoc: ParticipationDoc = {
       _id: participation,

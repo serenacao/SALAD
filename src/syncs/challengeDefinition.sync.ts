@@ -70,7 +70,6 @@ export const CreateChallengeUploadChallenge: Sync = ({ challenge }) => ({
 
 export const CreateChallengeResponseSuccess: Sync = ({
   request,
-
   challenge,
 }) => ({
   when: actions(
@@ -80,6 +79,7 @@ export const CreateChallengeResponseSuccess: Sync = ({
   then: actions([
     Requesting.respond,
     {
+      request,
       challenge,
       status: "created challenge",
     },
@@ -207,6 +207,7 @@ export const CloseChallengeResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "closed challenge",
     },
   ]),
@@ -283,6 +284,7 @@ export const DeleteChallengeResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "deleted challenge",
     },
   ]),
