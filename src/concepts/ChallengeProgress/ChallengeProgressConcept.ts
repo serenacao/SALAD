@@ -43,13 +43,14 @@ export default class ChallengeProgressConcept {
 
   async uploadChallenge({
     challenge,
-    daysOfWeek,
+    daysPerWeek,
     weeks,
   }: {
     challenge: Challenge;
-    daysOfWeek: number;
+    daysPerWeek: number;
     weeks: number;
   }): Promise<Empty | { error: string }> {
+    console.log("Attempting to upload challenge");
     const uploadedChallenge = await this.uploadedChallenges.findOne({
       _id: challenge,
     });
@@ -61,7 +62,7 @@ export default class ChallengeProgressConcept {
 
     const partDocs: Array<PartDoc> = [];
     for (let week = 1; week <= weeks; week++) {
-      for (let day = 1; day <= daysOfWeek; day++) {
+      for (let day = 1; day <= daysPerWeek; day++) {
         const partDoc = {
           _id: freshID(),
           week: week,

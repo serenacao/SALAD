@@ -14,7 +14,7 @@ export const CreateChallengeRequest: Sync = ({
   exercise,
   level,
   info,
-  daysOfWeek,
+  daysPerWeek,
   weeks,
   request,
   creator,
@@ -25,7 +25,7 @@ export const CreateChallengeRequest: Sync = ({
       path: "/createChallenge",
       session,
       exercise,
-      daysOfWeek,
+      daysPerWeek,
       weeks,
       level,
       info,
@@ -40,13 +40,14 @@ export const CreateChallengeRequest: Sync = ({
         user: creator,
       }
     );
+    console.log(`createChallenge final frames: ${frames}`);
     return frames;
   },
   then: actions([
     ChallengeDefinition.createChallenge,
     {
       exercise,
-      daysOfWeek,
+      daysPerWeek,
       weeks,
       level,
       info,
@@ -55,15 +56,22 @@ export const CreateChallengeRequest: Sync = ({
   ]),
 });
 
-export const CreateChallengeUploadChallenge: Sync = ({ challenge }) => ({
-  when: actions([ChallengeDefinition.createChallenge, {}, { challenge }]),
-  where: async (frames) => {
-    return frames;
-  },
+export const CreateChallengeUploadChallenge: Sync = ({
+  challenge,
+  daysPerWeek,
+  weeks,
+}) => ({
+  when: actions([
+    ChallengeDefinition.createChallenge,
+    { daysPerWeek, weeks },
+    { challenge },
+  ]),
   then: actions([
     ChallengeProgress.uploadChallenge,
     {
       challenge,
+      daysPerWeek,
+      weeks,
     },
   ]),
 });
@@ -82,6 +90,7 @@ export const CreateChallengeResponseSuccess: Sync = ({
     {
       challenge,
       status: "created challenge",
+      request,
     },
   ]),
 });
@@ -144,6 +153,7 @@ export const OpenChallengeResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "opened challenge",
     },
   ]),
@@ -207,6 +217,7 @@ export const CloseChallengeResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "closed challenge",
     },
   ]),
@@ -283,6 +294,7 @@ export const DeleteChallengeResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "deleted challenge",
     },
   ]),
