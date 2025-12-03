@@ -211,7 +211,6 @@ export const RemoveInvitationResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
-      request,
       status: "removed invitation",
     },
   ]),
@@ -289,7 +288,6 @@ export const RemoveParticipationResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
-      request,
       status: "removed participation",
     },
   ]),

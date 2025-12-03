@@ -182,32 +182,32 @@ export default class ChallengeParticipationConcept {
     }
     return [{ challenge: participationDoc.challenge }];
   }
-  async _getChallengeParticipations({
+  async _getChallengeParticipants({
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ participation: Participation; user: User }>> {
+  }): Promise<Array<{ user: User }>> {
     const participations = await this.participations
       .find({ challenge: challenge })
       .toArray();
-    const users: Array<{ user: User; participation: Participation }> = [];
+    const users: Array<{ user: User }> = [];
     participations.forEach((doc) => {
-      users.push({ user: doc.user, participation: doc._id });
+      users.push({ user: doc.user });
     });
     return users;
   }
 
-  async _getChallengeInvitations({
+  async _getChallengeInvitees({
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ user: User; invitation: Invitation }>> {
+  }): Promise<Array<{ user: User }>> {
     const invitations = await this.invitations
       .find({ challenge: challenge })
       .toArray();
-    const users: Array<{ user: User; invitation: Invitation }> = [];
+    const users: Array<{ user: User }> = [];
     invitations.forEach((doc) => {
-      users.push({ user: doc.user, invitation: doc._id });
+      users.push({ user: doc.user });
     });
     return users;
   }
@@ -216,16 +216,13 @@ export default class ChallengeParticipationConcept {
     user,
   }: {
     user: User;
-  }): Promise<Array<{ participation: Participation; challenge: Challenge }>> {
+  }): Promise<Array<{ challenge: Challenge }>> {
     const participations = await this.participations
       .find({ user: user })
       .toArray();
-    const challenges: Array<{
-      participation: Participation;
-      challenge: Challenge;
-    }> = [];
+    const challenges: Array<{ challenge: Challenge }> = [];
     participations.forEach((doc) => {
-      challenges.push({ participation: doc._id, challenge: doc.challenge });
+      challenges.push({ challenge: doc.challenge });
     });
     return challenges;
   }
@@ -234,49 +231,12 @@ export default class ChallengeParticipationConcept {
     user,
   }: {
     user: User;
-  }): Promise<Array<{ invitation: Invitation; challenge: Challenge }>> {
+  }): Promise<Array<{ challenge: Challenge }>> {
     const invitations = await this.invitations.find({ user: user }).toArray();
-    const challenges: Array<{ challenge: Challenge; invitation: Invitation }> =
-      [];
+    const challenges: Array<{ challenge: Challenge }> = [];
     invitations.forEach((doc) => {
-      challenges.push({ challenge: doc.challenge, invitation: doc._id });
+      challenges.push({ challenge: doc.challenge });
     });
     return challenges;
-  }
-
-  async _getInvitation({
-    user,
-    challenge,
-  }: {
-    user: User;
-    challenge: Challenge;
-  }): Promise<Array<{ invitation: Invitation }>> {
-    const invitationDoc = await this.invitations.findOne({
-      user: user,
-      challenge: challenge,
-    });
-    if (invitationDoc) {
-      return [{ invitation: invitationDoc._id }];
-    } else {
-      return [];
-    }
-  }
-
-  async _getParticipation({
-    user,
-    challenge,
-  }: {
-    user: User;
-    challenge: Challenge;
-  }): Promise<Array<{ participation: Invitation }>> {
-    const participationDoc = await this.participations.findOne({
-      user: user,
-      challenge: challenge,
-    });
-    if (participationDoc) {
-      return [{ participation: participationDoc._id }];
-    } else {
-      return [];
-    }
   }
 }

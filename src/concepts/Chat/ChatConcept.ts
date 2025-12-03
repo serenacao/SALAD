@@ -240,7 +240,7 @@ export default class ChatConcept {
   }: {
     userA: User;
     userB: User;
-  }): Promise<Array<{ chat: Chat }>> {
+  }): Promise<Array<{ chat: Chat }> | { error: string }> {
     const chatDoc = await this.chats.findOne({
       $or: [
         { user1: userA, user2: userB },
@@ -283,14 +283,21 @@ export default class ChatConcept {
   }: {
     chat: Chat;
   }): Promise<
-    Array<{
-      dm: { id: DM; time: Date; message: string; sender: User; receiver: User };
-    }>
+    | Array<{
+        dm: {
+          id: DM;
+          time: Date;
+          message: string;
+          sender: User;
+          receiver: User;
+        };
+      }>
+    | { error: string }
   > {
     const chatDoc = await this.chats.findOne({ _id: chat });
 
     if (!chatDoc || (!chatDoc.user1Accessible && !chatDoc.user2Accessible)) {
-      return [];
+      return { error: "Chat not found or is inaccessible" };
     }
 
     const dms = await this.dms
@@ -320,7 +327,7 @@ export default class ChatConcept {
     user,
   }: {
     user: User;
-  }): Promise<Array<{ chat: Chat }>> {
+  }): Promise<Array<{ chat: Chat }> | { error: string }> {
     const chats = await this.chats
       .find({
         $or: [

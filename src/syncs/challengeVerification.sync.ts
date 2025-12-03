@@ -81,7 +81,6 @@ export const CreateVerificationRequestResponseSuccess: Sync = ({
   then: actions([
     Requesting.respond,
     {
-      request,
       verificationRequest,
       status: "requested verification",
     },
@@ -149,7 +148,6 @@ export const RemoveVerificationResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
-      request,
       status: "removed verification request",
     },
   ]),
@@ -262,7 +260,6 @@ export const VerifyRequestResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
-      request,
       status: "verified request",
     },
   ]),
