@@ -39,6 +39,11 @@ export const inclusions: Record<string, string> = {
   "/api/Group/_isPrivate": "public query",
   "/api/Group/_getName": "public query",
   "/api/Group/_getPublicGroups": "public query",
+  "/api/Group/_getGroups": "public query",
+  "/api/Group/_getMembers": "public query",
+  "/api/Group/_getGroupRequests": "public query",
+  "/api/Group/_getUserRequests": "public query",
+  "/api/Group/_getRequestDetails":"public query",
 };
 
 /**
@@ -71,7 +76,7 @@ export const exclusions: Array<string> = [
   "/api/Session/delete",
 
   // Group creation and membership
-  "/api/Group/create",
+  
   "/api/Group/accept",
   "/api/Group/request",
   "/api/Group/deny",

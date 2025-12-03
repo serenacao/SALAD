@@ -109,3 +109,9 @@ deleteGroup(group: Group)
 **requires** nothing
 
 **effect** returns all GroupRequests where Requester is user
+
+\_getRequestDetails(GroupRequest: string): Array of User, Group
+
+**requires** GroupRequest exists
+
+**effect** returns User, Group that made GroupRequest
