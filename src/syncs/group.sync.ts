@@ -45,6 +45,7 @@ export const CreateResponseSuccess: Sync = ({ request, group }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       group,
       status: "created group",
     },
@@ -104,6 +105,7 @@ export const MembershipResponseSuccess: Sync = ({
   then: actions([
     Requesting.respond,
     {
+      request,
       membershipRequest,
       status: "created membership request",
     },
@@ -127,6 +129,7 @@ export const AcceptRequest: Sync = ({
   membershipRequest,
   leader,
   group,
+  isPrivate,
   request,
 }) => ({
   when: actions([
@@ -148,7 +151,19 @@ export const AcceptRequest: Sync = ({
       { user, group }
     );
     frames = await frames.query(Group._getLeader, { group }, { leader });
-    frames = frames.filter(($) => $[actingUser] === $[leader]);
+    frames = await frames.query(Group._isPrivate, { group }, { isPrivate });
+
+    // If group is private → leader approval required
+    // If group is public → allow anyone (skip leader filtering)
+    frames = frames.filter(($) => {
+      if ($[isPrivate] === true) {
+        return $[actingUser] === $[leader];
+      }
+      return true; // public group → auto-accepted
+    });
+    
+
+
     return frames;
   },
   then: actions([
@@ -176,6 +191,7 @@ export const AcceptResponseSuccess: Sync = ({
   then: actions([
     Requesting.respond,
     {
+      request,
       membershipRequest,
       status: "accepted membership request",
     },
@@ -245,6 +261,7 @@ export const DenyResponseSuccess: Sync = ({ request, membershipRequest }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       membershipRequest,
       status: "denied membership request",
     },
@@ -305,6 +322,7 @@ export const RemoveMemberResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "removed member",
     },
   ]),
@@ -366,6 +384,7 @@ export const DeleteGroupResponseSuccess: Sync = ({ request, group }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       group,
       status: "deleted group",
     },

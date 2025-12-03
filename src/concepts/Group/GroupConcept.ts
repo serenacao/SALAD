@@ -4,6 +4,7 @@ import { assertEquals, assertExists, assertNotEquals } from "jsr:@std/assert";
 import { Collection, Db, ListSearchIndexesCursor } from "npm:mongodb";
 import { freshID } from "@utils/database.ts";
 import { startRequestingServer } from "../Requesting/RequestingConcept.ts";
+import { timingSafeEqual } from "node:crypto";
 
 // Collection prefix to ensure namespace separation
 const PREFIX = "Group" + ".";
@@ -67,6 +68,7 @@ export default class GroupConcept {
     name: string;
     privateGroup: boolean;
   }): Promise<{ group: Group } | { error: string }> {
+    console.log("input params", leader, name , privateGroup);
     if (name === "") {
       return { error: "Name cannot be empty" };
     }
@@ -77,6 +79,13 @@ export default class GroupConcept {
       name: name,
       privateGroup: privateGroup,
     });
+    await this.memberships.insertOne({
+      _id: freshID(),
+      member: leader,
+      group: groupID,
+    });
+    console.log("created group with id", groupID);
+    console.log("with leader", leader);
     return { group: groupID };
   }
 
@@ -195,12 +204,13 @@ export default class GroupConcept {
     user,
   }: {
     user: User;
-  }): Promise<Array<{ group: Group; name: string; leader: User }>> {
+  }): Promise<{groups: Array<{ group: Group; name: string; leader: User }>}> {
+    console.log('getting groups for ', user);
     const membershipDocs = await this.memberships
       .find({ member: user })
       .toArray();
     const output: Array<{ group: Group; name: string; leader: User }> = [];
-
+    console.log('membershipdocs:', membershipDocs);
     const groupDocs = await Promise.all(
       membershipDocs.map((doc) => this.groups.findOne({ _id: doc.group }))
     );
@@ -210,7 +220,8 @@ export default class GroupConcept {
         output.push({ group: doc._id, name: doc.name, leader: doc.leader });
       }
     });
-    return output;
+    console.log("groups found:", output);
+    return {groups: output};
   }
 
   async _getMembers({
@@ -265,7 +276,7 @@ export default class GroupConcept {
   }
 
   async _getPublicGroups({}: {}): Promise<
-    Array<{ group: Group; name: string; leader: User }>
+    {groups: Array<{ group: Group; name: string; leader: User }>}
   > {
     const groupDocs = await this.groups.find({ privateGroup: false }).toArray();
 
@@ -275,7 +286,7 @@ export default class GroupConcept {
       groups.push({ group: doc._id, name: doc.name, leader: doc.leader });
     });
 
-    return groups;
+    return {groups: groups};
   }
 
   async _getGroupRequests({
