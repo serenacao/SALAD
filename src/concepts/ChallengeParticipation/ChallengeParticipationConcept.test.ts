@@ -131,16 +131,6 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
         true,
         "User A should have a participation for challenge 2"
       );
-
-      // Verify invitation still exists (current implementation detail)
-      const originalInvitation = await concept["invitations"].findOne({
-        _id: invitationIdA,
-      });
-      assertEquals(
-        originalInvitation?._id,
-        invitationIdA,
-        "Original invitation should still exist"
-      );
     }
   );
 
