@@ -194,13 +194,13 @@ export default class ChallengeParticipationConcept {
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ user: User }>> {
+  }): Promise<Array<{ user: User; invitation: Invitation }>> {
     const invitations = await this.invitations
       .find({ challenge: challenge })
       .toArray();
-    const users: Array<{ user: User }> = [];
+    const users: Array<{ user: User; invitation: Invitation }> = [];
     invitations.forEach((doc) => {
-      users.push({ user: doc.user });
+      users.push({ user: doc.user, invitation: doc._id });
     });
     return users;
   }
