@@ -14,7 +14,7 @@ export const CreateChallengeRequest: Sync = ({
   exercise,
   level,
   info,
-  daysOfWeek,
+  daysPerWeek,
   weeks,
   request,
   creator,
@@ -25,7 +25,7 @@ export const CreateChallengeRequest: Sync = ({
       path: "/createChallenge",
       session,
       exercise,
-      daysOfWeek,
+      daysPerWeek,
       weeks,
       level,
       info,
@@ -46,7 +46,7 @@ export const CreateChallengeRequest: Sync = ({
     ChallengeDefinition.createChallenge,
     {
       exercise,
-      daysOfWeek,
+      daysPerWeek,
       weeks,
       level,
       info,
@@ -55,14 +55,24 @@ export const CreateChallengeRequest: Sync = ({
   ]),
 });
 
-export const CreateChallengeUploadChallenge: Sync = ({ challenge }) => ({
-  when: actions([ChallengeDefinition.createChallenge, {}, { challenge }]),
+export const CreateChallengeUploadChallenge: Sync = ({
+  daysPerWeek,
+  weeks,
+  challenge,
+}) => ({
+  when: actions([
+    ChallengeDefinition.createChallenge,
+    { daysPerWeek, weeks },
+    { challenge },
+  ]),
   where: async (frames) => {
     return frames;
   },
   then: actions([
     ChallengeProgress.uploadChallenge,
     {
+      daysPerWeek,
+      weeks,
       challenge,
     },
   ]),
