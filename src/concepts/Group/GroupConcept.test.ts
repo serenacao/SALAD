@@ -42,9 +42,9 @@ Deno.test(
 
       const userRequests = await groupConcept._getUserRequests({ user: user });
 
-      assertEquals(userRequests.length, 1);
+      assertEquals(userRequests.requests.length, 1);
 
-      const userRequest = userRequests[0];
+      const userRequest = userRequests.requests[0];
 
       assertEquals(userRequest.group, groupObject.group, "Incorrect group");
       assertEquals(
@@ -57,9 +57,9 @@ Deno.test(
         group: groupObject.group,
       });
 
-      assertEquals(groupRequests.length, 1);
+      assertEquals(groupRequests.requests.length, 1);
 
-      const groupRequest = groupRequests[0];
+      const groupRequest = groupRequests.requests[0];
       assertEquals(groupRequest.requester, user, "Incorrect user");
       assertEquals(
         groupRequest.membershipRequest,
@@ -77,7 +77,7 @@ Deno.test(
         group: groupObject.group,
       });
 
-      assertEquals(members.length, 2);
+      assertEquals(members.members.length, 2);
 
 
       console.log("Successfully accepted membership");
@@ -115,7 +115,7 @@ Deno.test("Action: deny", async () => {
 
     const userRequests = await groupConcept._getUserRequests({ user: user });
 
-    const userRequest = userRequests[0];
+    const userRequest = userRequests.requests[0];
 
     await groupConcept.deny({
       membershipRequest: membershipRequest.membershipRequest,
@@ -125,13 +125,13 @@ Deno.test("Action: deny", async () => {
       group: groupObject.group,
     });
 
-    assertEquals(groupRequests.length, 0);
+    assertEquals(groupRequests.requests.length, 0);
 
     const members = await groupConcept._getMembers({
       group: groupObject.group,
     });
 
-    assertEquals(members.length, 1);
+    assertEquals(members.members.length, 1);
   } finally {
     await client.close();
   }
@@ -173,7 +173,7 @@ Deno.test("Action: removeMember", async () => {
       group: groupObject.group,
     });
 
-    assertEquals(members.length, 1);
+    assertEquals(members.members.length, 1);
   } finally {
     await client.close();
   }
@@ -225,13 +225,13 @@ Deno.test(
 
       const userRequests = await groupConcept._getUserRequests({ user: user2 });
 
-      assertEquals(userRequests.length, 2);
+      assertEquals(userRequests.requests.length, 2);
 
       const groupRequests = await groupConcept._getGroupRequests({
         group: group1Object.group,
       });
 
-      assertEquals(groupRequests.length, 2);
+      assertEquals(groupRequests.requests.length, 2);
 
       await groupConcept.accept({
         membershipRequest: membershipRequest1Object.membershipRequest,
@@ -249,13 +249,13 @@ Deno.test(
         group: group1Object.group,
       });
 
-      assertEquals(members1.length, 3);
+      assertEquals(members1.members.length, 3);
 
       const members2 = await groupConcept._getMembers({
         group: group2Object.group,
       });
 
-      assertEquals(members2.length, 1);
+      assertEquals(members2.members.length, 1);
 
       console.log("Successfully accepted membership");
     } finally {
@@ -292,9 +292,9 @@ Deno.test("State: private group", async () => {
 
     const userRequests = await groupConcept._getUserRequests({ user: user });
 
-    assertEquals(userRequests.length, 1);
+    assertEquals(userRequests.requests.length, 1);
 
-    const userRequest = userRequests[0];
+    const userRequest = userRequests.requests[0];
 
     assertEquals(userRequest.group, groupObject.group, "Incorrect group");
     assertEquals(
@@ -307,9 +307,9 @@ Deno.test("State: private group", async () => {
       group: groupObject.group,
     });
 
-    assertEquals(groupRequests.length, 1);
+    assertEquals(groupRequests.requests.length, 1);
 
-    const groupRequest = groupRequests[0];
+    const groupRequest = groupRequests.requests[0];
     assertEquals(groupRequest.requester, user, "Incorrect user");
     assertEquals(
       groupRequest.membershipRequest,
@@ -327,7 +327,7 @@ Deno.test("State: private group", async () => {
       group: groupObject.group,
     });
 
-    assertEquals(members.length, 2);
+    assertEquals(members.members.length, 2);
 
   
 

@@ -200,156 +200,158 @@ export default class GroupConcept {
     return {};
   }
 
-  async _getGroups({
-    user,
-  }: {
-    user: User;
-  }): Promise<{groups: Array<{ group: Group; name: string; leader: User }>}> {
-    console.log('getting groups for ', user);
-    const membershipDocs = await this.memberships
-      .find({ member: user })
-      .toArray();
-    const output: Array<{ group: Group; name: string; leader: User }> = [];
-    console.log('membershipdocs:', membershipDocs);
-    const groupDocs = await Promise.all(
-      membershipDocs.map((doc) => this.groups.findOne({ _id: doc.group }))
-    );
+  // ------------------------------
+// Get groups the user is in
+// ------------------------------
+async _getGroups({
+  user,
+}: {
+  user: User;
+}): Promise<{ groups: Array<{ group: Group; name: string; leader: User }> }> {
+  const membershipDocs = await this.memberships.find({ member: user }).toArray();
+  const groupDocs = await Promise.all(
+    membershipDocs.map((doc) => this.groups.findOne({ _id: doc.group }))
+  );
 
-    groupDocs.forEach((doc) => {
-      if (doc) {
-        output.push({ group: doc._id, name: doc.name, leader: doc.leader });
-      }
-    });
-    console.log("groups found:", output);
-    return {groups: output};
-  }
+  const groups = groupDocs
+    .filter((doc) => doc)
+    .map((doc) => ({
+      group: doc!._id,
+      name: doc!.name,
+      leader: doc!.leader,
+    }));
 
-  async _getMembers({
-    group,
-  }: {
-    group: Group;
-  }): Promise<Array<{ member: User }>> {
-    const membershipDocs = await this.memberships
-      .find({ group: group })
-      .toArray();
-    const members: Array<{ member: Group }> = [];
-    membershipDocs.forEach((doc) => {
-      members.push({ member: doc.member });
-    });
-    return members;
-  }
+  return { groups };
+}
 
-  async _getLeader({
-    group,
-  }: {
-    group: Group;
-  }): Promise<Array<{ leader: User }>> {
-    const groupDoc = await this.groups.findOne({ _id: group });
-    if (!groupDoc) {
-      return [];
-    }
-    return [{ leader: groupDoc.leader }];
-  }
+// ------------------------------
+// Get members of a group
+// ------------------------------
+async _getMembers({
+  group,
+}: {
+  group: Group;
+}): Promise<{ members: User[] }> {
+  const membershipDocs = await this.memberships.find({ group }).toArray();
 
-  async _getName({
-    group,
-  }: {
-    group: Group;
-  }): Promise<Array<{ name: string }>> {
-    const groupDoc = await this.groups.findOne({ _id: group });
-    if (!groupDoc) {
-      return [];
-    }
-    return [{ name: groupDoc.name }];
-  }
+  return {
+    members: membershipDocs.map((doc) => doc.member),
+  };
+}
 
-  async _isPrivate({
-    group,
-  }: {
-    group: Group;
-  }): Promise<Array<{ isPrivate: boolean }>> {
-    const groupDoc = await this.groups.findOne({ _id: group });
-    if (!groupDoc) {
-      return [];
-    }
-    return [{ isPrivate: groupDoc.privateGroup }];
-  }
+// ------------------------------
+// Get leader of group
+// ------------------------------
+async _getLeader({
+  group,
+}: {
+  group: Group;
+}): Promise<{ leader: User | null }> {
+  const groupDoc = await this.groups.findOne({ _id: group });
+  return { leader: groupDoc ? groupDoc.leader : null };
+}
 
-  async _getPublicGroups({}: {}): Promise<
-    {groups: Array<{ group: Group; name: string; leader: User }>}
-  > {
-    const groupDocs = await this.groups.find({ privateGroup: false }).toArray();
+// ------------------------------
+// Get name of group
+// ------------------------------
+async _getName({
+  group,
+}: {
+  group: Group;
+}): Promise<{ name: string | null }> {
+  const groupDoc = await this.groups.findOne({ _id: group });
+  return { name: groupDoc ? groupDoc.name : null };
+}
 
-    const groups: Array<{ group: Group; name: string; leader: User }> = [];
+// ------------------------------
+// Get privacy status
+// ------------------------------
+async _isPrivate({
+  group,
+}: {
+  group: Group;
+}): Promise<{ isPrivate: boolean | null }> {
+  const groupDoc = await this.groups.findOne({ _id: group });
+  return { isPrivate: groupDoc ? groupDoc.privateGroup : null };
+}
 
-    groupDocs.forEach((doc) => {
-      groups.push({ group: doc._id, name: doc.name, leader: doc.leader });
-    });
+// ------------------------------
+// Get all public groups
+// ------------------------------
+async _getPublicGroups({}): Promise<{
+  groups: Array<{ group: Group; name: string; leader: User }>;
+}> {
+  const groupDocs = await this.groups.find({ privateGroup: false }).toArray();
 
-    return {groups: groups};
-  }
+  return {
+    groups: groupDocs.map((doc) => ({
+      group: doc._id,
+      name: doc.name,
+      leader: doc.leader,
+    })),
+  };
+}
 
-  async _getGroupRequests({
-    group,
-  }: {
-    group: Group;
-  }): Promise<
-    Array<{ membershipRequest: MembershipRequest; requester: User }>
-  > {
-    const requestDocs = await this.membershipRequests
-      .find({ group: group })
-      .toArray();
+// ------------------------------
+// Get membership requests for a group
+// ------------------------------
+async _getGroupRequests({
+  group,
+}: {
+  group: Group;
+}): Promise<{
+  requests: Array<{ membershipRequest: MembershipRequest; requester: User }>;
+}> {
+  const requestDocs = await this.membershipRequests.find({ group }).toArray();
 
-    const requests: Array<{
-      membershipRequest: MembershipRequest;
-      requester: User;
-    }> = [];
+  return {
+    requests: requestDocs.map((doc) => ({
+      membershipRequest: doc._id,
+      requester: doc.requester,
+    })),
+  };
+}
 
-    requestDocs.forEach((doc) => {
-      requests.push({
-        membershipRequest: doc._id,
-        requester: doc.requester,
-      });
-    });
+// ------------------------------
+// Get requests made by a user
+// ------------------------------
+async _getUserRequests({
+  user,
+}: {
+  user: User;
+}): Promise<{
+  requests: Array<{ membershipRequest: MembershipRequest; group: Group }>;
+}> {
+  const requestDocs = await this.membershipRequests
+    .find({ requester: user })
+    .toArray();
 
-    return requests;
-  }
+  return {
+    requests: requestDocs.map((doc) => ({
+      membershipRequest: doc._id,
+      group: doc.group,
+    })),
+  };
+}
 
-  async _getUserRequests({
-    user,
-  }: {
-    user: User;
-  }): Promise<Array<{ membershipRequest: MembershipRequest; group: Group }>> {
-    const requestDocs = await this.membershipRequests
-      .find({ requester: user })
-      .toArray();
+// ------------------------------
+// Get details for a single membership request
+// ------------------------------
+async _getRequestDetails({
+  membershipRequest,
+}: {
+  membershipRequest: MembershipRequest;
+}): Promise<{ user: User | null; group: Group | null }> {
+  const requestDoc = await this.membershipRequests.findOne({
+    _id: membershipRequest,
+  });
 
-    const requests: Array<{
-      membershipRequest: MembershipRequest;
-      group: Group;
-    }> = [];
+  if (!requestDoc) return { user: null, group: null };
 
-    requestDocs.forEach((doc) => {
-      requests.push({
-        membershipRequest: doc._id,
-        group: doc.group,
-      });
-    });
+  return {
+    user: requestDoc.requester,
+    group: requestDoc.group,
+  };
+}
 
-    return requests;
-  }
-
-  async _getRequestDetails({
-    membershipRequest,
-  }: {
-    membershipRequest: MembershipRequest;
-  }): Promise<Array<{ user: User; group: Group }>> {
-    const requestDoc = await this.membershipRequests.findOne({
-      _id: membershipRequest,
-    });
-    if (!requestDoc) {
-      return [];
-    }
-    return [{ user: requestDoc.requester, group: requestDoc.group }];
-  }
 }
