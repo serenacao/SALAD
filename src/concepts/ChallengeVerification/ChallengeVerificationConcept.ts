@@ -9,6 +9,7 @@ const PREFIX = "ChallengeVerification" + ".";
 // Generic types of this concept
 type User = ID;
 type Part = ID;
+type Challenge = ID;
 type File = ID;
 type VerificationRequest = ID;
 
@@ -18,6 +19,7 @@ interface VerificationRequestDoc {
   requester: User;
   approver: User;
   part: Part;
+  challenge: Challenge;
   approved: boolean;
 }
 
@@ -31,11 +33,13 @@ export default class ChallengeVerificationConcept {
   }
 
   async createVerificationRequest({
+    challenge,
     part,
     requester,
     approver,
     evidence,
   }: {
+    challenge: Challenge;
     part: Part;
     requester: User;
     approver: User;
@@ -43,6 +47,13 @@ export default class ChallengeVerificationConcept {
   }): Promise<
     { verificationRequest: VerificationRequest } | { error: string }
   > {
+    const matchingRequest = await this.verificationRequests.findOne({
+      part: part,
+      requester: requester,
+    });
+    if (matchingRequest) {
+      return { error: "Verification request already exists" };
+    }
     const verificationRequest: VerificationRequest = freshID();
     const verificationRequestDoc = {
       _id: verificationRequest,
@@ -50,6 +61,7 @@ export default class ChallengeVerificationConcept {
       requester: requester,
       approver: approver,
       part: part,
+      challenge: challenge,
       approved: false,
     };
     await this.verificationRequests.insertOne(verificationRequestDoc);
@@ -87,6 +99,22 @@ export default class ChallengeVerificationConcept {
       { _id: verificationRequest },
       { $set: { approved: true } }
     );
+
+    return {};
+  }
+
+  async reject({
+    verificationRequest,
+  }: {
+    verificationRequest: VerificationRequest;
+  }): Promise<Empty | { error: string }> {
+    const verificationRequestDoc = await this.verificationRequests.findOne({
+      _id: verificationRequest,
+    });
+    if (!verificationRequestDoc) {
+      return { error: "Verification request does not exist" };
+    }
+    await this.verificationRequests.deleteOne({ _id: verificationRequest });
 
     return {};
   }
@@ -133,6 +161,20 @@ export default class ChallengeVerificationConcept {
     return [{ part: verificationRequestDoc.part }];
   }
 
+  async _getRequestChallenge({
+    verificationRequest,
+  }: {
+    verificationRequest: VerificationRequest;
+  }): Promise<Array<{ challenge: Challenge }>> {
+    const verificationRequestDoc = await this.verificationRequests.findOne({
+      _id: verificationRequest,
+    });
+    if (!verificationRequestDoc) {
+      return [];
+    }
+    return [{ challenge: verificationRequestDoc.challenge }];
+  }
+
   async _getRequestDetails({
     verificationRequests,
   }: {
@@ -144,6 +186,7 @@ export default class ChallengeVerificationConcept {
       approver: User;
       requester: User;
       approved: boolean;
+      challenge: Challenge;
     }>
   > {
     const requestDocs = await Promise.all(
@@ -158,6 +201,7 @@ export default class ChallengeVerificationConcept {
       approver: User;
       requester: User;
       approved: boolean;
+      challenge: Challenge;
     }> = [];
     requestDocs.forEach((doc) => {
       if (!doc) {
@@ -169,6 +213,7 @@ export default class ChallengeVerificationConcept {
         approver: doc.approver,
         requester: doc.requester,
         approved: doc.approved,
+        challenge: doc.challenge,
       });
     });
     return output;
@@ -176,11 +221,13 @@ export default class ChallengeVerificationConcept {
 
   async _getRequesterActiveRequests({
     user,
+    challenge,
   }: {
     user: User;
+    challenge: Challenge;
   }): Promise<Array<{ verificationRequest: VerificationRequest }>> {
     const requests = await this.verificationRequests
-      .find({ requester: user, approved: false })
+      .find({ requester: user, challenge: challenge, approved: false })
       .toArray();
     const output: Array<{ verificationRequest: VerificationRequest }> = [];
     requests.forEach((doc) => output.push({ verificationRequest: doc._id }));
@@ -209,6 +256,7 @@ export default class ChallengeVerificationConcept {
   }): Promise<Array<{ isRequested: boolean }>> {
     const request = await this.verificationRequests.findOne({
       requester: user,
+      part: part,
       approved: false,
     });
     if (!request) {

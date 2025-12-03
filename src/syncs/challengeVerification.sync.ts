@@ -18,6 +18,7 @@ export const CreateVerificationRequest: Sync = ({
   approver,
   evidence,
   challenge,
+  partChallenge,
   isOpen,
   request,
 }) => ({
@@ -30,6 +31,7 @@ export const CreateVerificationRequest: Sync = ({
       requester,
       approver,
       evidence,
+      challenge,
     },
     { request },
   ]),
@@ -44,13 +46,14 @@ export const CreateVerificationRequest: Sync = ({
     frames = await frames.query(
       ChallengeProgress._getPartChallenge,
       { part },
-      { challenge }
+      { partChallenge }
     );
     frames = await frames.query(
       ChallengeDefinition._isOpen,
       { challenge },
       { isOpen }
     );
+    frames = frames.filter(($) => $[partChallenge] === $[challenge]);
     frames = frames.filter(($) => $[isOpen] === true);
     frames = frames.filter(($) => $[actingUser] === $[requester]);
     return frames;
@@ -148,6 +151,7 @@ export const RemoveVerificationResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "removed verification request",
     },
   ]),
@@ -260,6 +264,7 @@ export const VerifyRequestResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "verified request",
     },
   ]),
@@ -269,6 +274,83 @@ export const VerifyRequestResponseError: Sync = ({ request, error }) => ({
   when: actions(
     [Requesting.request, { path: "/verifyRequest" }, { request }],
     [ChallengeVerification.verify, {}, { error }]
+  ),
+  then: actions([Requesting.respond, { request, error }]),
+});
+
+// reject (only approver should reject, and only when challenge is open)
+
+export const RejectRequest: Sync = ({
+  session,
+  actingUser,
+  verificationRequest,
+  challenge,
+  isOpen,
+  approver,
+  request,
+}) => ({
+  when: actions([
+    Requesting.request,
+    {
+      path: "/rejectRequest",
+      session,
+      verificationRequest,
+    },
+    { request },
+  ]),
+  where: async (frames) => {
+    frames = await frames.query(
+      Session._getUser,
+      { session },
+      {
+        user: actingUser,
+      }
+    );
+    frames = await frames.query(
+      ChallengeVerification._getRequestApprover,
+      { verificationRequest },
+      { approver }
+    );
+    frames = await frames.query(
+      ChallengeVerification._getRequestChallenge,
+      { verificationRequest },
+      { challenge }
+    );
+    frames = await frames.query(
+      ChallengeDefinition._isOpen,
+      { challenge },
+      { isOpen }
+    );
+    frames = frames.filter(($) => $[isOpen] === true);
+    frames = frames.filter(($) => $[actingUser] === $[approver]);
+    return frames;
+  },
+  then: actions([
+    ChallengeVerification.reject,
+    {
+      verificationRequest,
+    },
+  ]),
+});
+
+export const RejectRequestResponseSuccess: Sync = ({ request }) => ({
+  when: actions(
+    [Requesting.request, { path: "/rejectRequest" }, { request }],
+    [ChallengeVerification.reject, {}, {}]
+  ),
+  then: actions([
+    Requesting.respond,
+    {
+      request,
+      status: "verified request",
+    },
+  ]),
+});
+
+export const RejectRequestResponseError: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/rejectRequest" }, { request }],
+    [ChallengeVerification.reject, {}, { error }]
   ),
   then: actions([Requesting.respond, { request, error }]),
 });

@@ -22,7 +22,7 @@ a set of VerificationRequests with
 
 createVerificationRequest(part: Part, requester: User, approver: User, evidence: File): verificationRequest
 
-**requires** nothing
+**requires** there is not already a VerificationRequest with this requester and part
 
 **effect** creates a new VerificationRequest with requester, approver, part, evidence and Approved set to False; adds it to VerificationRequests
 
@@ -37,6 +37,12 @@ verify(verificationRequest: VerificationRequest)
 **requires** verificationRequest is in VerificationRequests;
 
 **effect** sets Approved to True for the associated VerificationRequest
+
+deny(verificationRequest: VerificationRequest)
+
+**requires** verificationRequest is in VerificationRequests;
+
+**effect** deletes verificationRequest from VerificationRequests
 
 **queries**
 
