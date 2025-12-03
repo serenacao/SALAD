@@ -236,4 +236,40 @@ export default class ChallengeParticipationConcept {
     });
     return challenges;
   }
+
+  async _getInvitation({
+    user,
+    challenge,
+  }: {
+    user: User;
+    challenge: Challenge;
+  }): Promise<Array<{ invitation: Invitation }>> {
+    const invitationDoc = await this.invitations.findOne({
+      user: user,
+      challenge: challenge,
+    });
+    if (invitationDoc) {
+      return [{ invitation: invitationDoc._id }];
+    } else {
+      return [];
+    }
+  }
+
+  async _getParticipation({
+    user,
+    challenge,
+  }: {
+    user: User;
+    challenge: Challenge;
+  }): Promise<Array<{ participation: Invitation }>> {
+    const participationDoc = await this.participations.findOne({
+      user: user,
+      challenge: challenge,
+    });
+    if (participationDoc) {
+      return [{ participation: participationDoc._id }];
+    } else {
+      return [];
+    }
+  }
 }
