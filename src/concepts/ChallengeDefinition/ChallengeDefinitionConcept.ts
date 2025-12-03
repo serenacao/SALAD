@@ -372,4 +372,17 @@ export default class ChallengeDefinitionConcept {
     }
     return [{ bonusPoints: existingChallenge.bonusPoints }];
   }
+
+  async _getCreatedChallenges({
+    user,
+  }: {
+    user: User;
+  }): Promise<Array<{ challenge: Challenge }>> {
+    const challengeDocs = await this.challenges
+      .find({ creator: user })
+      .toArray();
+    const challenges: Array<{ challenge: Challenge }> = [];
+    challengeDocs.forEach((doc) => challenges.push({ challenge: doc._id }));
+    return challenges;
+  }
 }
