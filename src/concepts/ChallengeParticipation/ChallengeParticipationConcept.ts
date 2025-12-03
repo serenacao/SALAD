@@ -41,6 +41,13 @@ export default class ChallengeParticipationConcept {
     challenge: Challenge;
     user: User;
   }): Promise<{ invitation: Invitation } | { error: string }> {
+    const matchingInvitation = await this.invitations.findOne({
+      user: user,
+      challenge: challenge,
+    });
+    if (matchingInvitation) {
+      return { error: "Invitation already exists" };
+    }
     const invitation = freshID();
     const invitationDoc: InvitationDoc = {
       _id: invitation,
