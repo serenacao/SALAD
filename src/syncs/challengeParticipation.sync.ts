@@ -64,6 +64,7 @@ export const CreateInvitationResponseSuccess: Sync = ({
   then: actions([
     Requesting.respond,
     {
+      request,
       invitation,
       status: "created invitation",
     },
@@ -131,6 +132,7 @@ export const AcceptInvitationResponseSuccess: Sync = ({
   then: actions([
     Requesting.respond,
     {
+      request,
       participation,
       status: "accepted invitation and created participation",
     },
