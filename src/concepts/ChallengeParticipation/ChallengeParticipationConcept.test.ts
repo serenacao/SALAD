@@ -49,26 +49,21 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
   await t.step(
     "[Action]: createInvitation - Multiple invitations",
     async () => {
-      // Test creating multiple invitations, including duplicates (which the current implementation allows)
+      // Test creating multiple invitations,
       const result1 = await concept.createInvitation({
         challenge: challenge1,
         user: userB,
       });
-      const result2 = await concept.createInvitation({
-        challenge: challenge1,
-        user: userA,
-      }); // Duplicate, but allowed by current implementation
 
       assertEquals("invitation" in result1, true);
-      assertEquals("invitation" in result2, true);
 
       const userAInvitations = await concept._getUserInvitations({
         user: userA,
       });
       assertEquals(
         userAInvitations.filter((inv) => inv.challenge === challenge1).length,
-        2,
-        "User A should have two invitations for challenge 1 (due to re-creation)"
+        1,
+        "User A should have one invitations for challenge 1 "
       );
       const userBInvitations = await concept._getUserInvitations({
         user: userB,
@@ -229,7 +224,7 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
       // Create invitation and accept to get a participation
       const createInvResult = await concept.createInvitation({
         challenge: challenge1,
-        user: userB,
+        user: freshID(),
       });
       const invId = (createInvResult as { invitation: ID }).invitation;
       const acceptPartResult = await concept.acceptInvitation({
@@ -244,6 +239,8 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
       const removeResult = await concept.removeParticipation({
         participation: participationIdC,
       });
+      console.log(removeResult);
+      console.log(removeResult.error);
       assertEquals(typeof removeResult, "object");
       assertEquals(
         Object.keys(removeResult).length,
@@ -348,8 +345,8 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
     }
   );
 
-  await t.step("[Query]: _getChallengeParticipants", async () => {
-    const participants = await concept._getChallengeParticipants({
+  await t.step("[Query]: _getChallengeParticipations", async () => {
+    const participants = await concept._getChallengeParticipations({
       challenge: challenge1,
     });
     // User A created an invitation, then accepted it for challenge2, but not challenge1 directly.
@@ -381,7 +378,7 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
     })) as { invitation: ID };
     await concept.acceptInvitation({ invitation: inv2A.invitation });
 
-    const c1Participants = await concept._getChallengeParticipants({
+    const c1Participants = await concept._getChallengeParticipations({
       challenge: challenge1,
     });
     assertEquals(
@@ -400,7 +397,7 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
       "User B should be a participant in challenge 1"
     );
 
-    const c2Participants = await concept._getChallengeParticipants({
+    const c2Participants = await concept._getChallengeParticipations({
       challenge: challenge2,
     });
     assertEquals(
@@ -415,7 +412,7 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
     );
 
     const nonExistentChallengeParticipants =
-      await concept._getChallengeParticipants({ challenge: freshID() as ID });
+      await concept._getChallengeParticipations({ challenge: freshID() as ID });
     assertEquals(
       nonExistentChallengeParticipants.length,
       0,
@@ -423,7 +420,7 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
     );
   });
 
-  await t.step("[Query]: _getChallengeInvitees", async () => {
+  await t.step("[Query]: _getChallengeInvitations", async () => {
     await concept["invitations"].deleteMany({}); // Clear previous invitations
     await concept["participations"].deleteMany({}); // Clear previous participations
 
@@ -434,7 +431,7 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
     // Invite User A to Challenge 2
     await concept.createInvitation({ challenge: challenge2, user: userA });
 
-    const c1Invitees = await concept._getChallengeInvitees({
+    const c1Invitees = await concept._getChallengeInvitations({
       challenge: challenge1,
     });
     assertEquals(c1Invitees.length, 2, "Challenge 1 should have 2 invitees");
@@ -449,7 +446,7 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
       "User B should be an invitee for challenge 1"
     );
 
-    const c2Invitees = await concept._getChallengeInvitees({
+    const c2Invitees = await concept._getChallengeInvitations({
       challenge: challenge2,
     });
     assertEquals(c2Invitees.length, 1, "Challenge 2 should have 1 invitee");
@@ -459,9 +456,11 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
       "User A should be an invitee for challenge 2"
     );
 
-    const nonExistentChallengeInvitees = await concept._getChallengeInvitees({
-      challenge: freshID() as ID,
-    });
+    const nonExistentChallengeInvitees = await concept._getChallengeInvitations(
+      {
+        challenge: freshID() as ID,
+      }
+    );
     assertEquals(
       nonExistentChallengeInvitees.length,
       0,
@@ -658,7 +657,7 @@ Deno.test("ChallengeParticipationConcept Tests", async (t) => {
       );
       console.log(`   - Verified invited user is now a participant.`);
 
-      let challengeParticipants = await concept._getChallengeParticipants({
+      let challengeParticipants = await concept._getChallengeParticipations({
         challenge: challenge,
       });
       assertEquals(

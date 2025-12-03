@@ -65,9 +65,13 @@ export default class ChatConcept {
    *
    * **effects** creates a new chat between those two users; returns the ID of the new chat
    */
-  async startChat(
-    { requester, receiver }: { requester: User; receiver: User },
-  ): Promise<{ chat: Chat } | { error: string }> {
+  async startChat({
+    requester,
+    receiver,
+  }: {
+    requester: User;
+    receiver: User;
+  }): Promise<{ chat: Chat } | { error: string }> {
     // Ensure requester and receiver are different
     if (requester === receiver) {
       return { error: "Cannot start a chat with yourself" };
@@ -109,9 +113,13 @@ export default class ChatConcept {
    *
    * **effects** makes chat inaccessible to user (effectively deleting on their end)
    */
-  async deleteChat(
-    { chat, user }: { chat: Chat; user: User },
-  ): Promise<Empty | { error: string }> {
+  async deleteChat({
+    chat,
+    user,
+  }: {
+    chat: Chat;
+    user: User;
+  }): Promise<Empty | { error: string }> {
     const chatDoc = await this.chats.findOne({ _id: chat });
 
     if (!chatDoc) {
@@ -125,12 +133,13 @@ export default class ChatConcept {
     if (chatDoc.user1 === user) {
       await this.chats.updateOne(
         { _id: chat },
-        { $set: { user1Accessible: false } },
+        { $set: { user1Accessible: false } }
       );
-    } else { // chatDoc.user2 === user
+    } else {
+      // chatDoc.user2 === user
       await this.chats.updateOne(
         { _id: chat },
-        { $set: { user2Accessible: false } },
+        { $set: { user2Accessible: false } }
       );
     }
 
@@ -147,13 +156,15 @@ export default class ChatConcept {
    *
    * **effects** adds message to that chat; returns the ID of the new DM.
    */
-  async send(
-    { sender, receiver, message }: {
-      sender: User;
-      receiver: User;
-      message: string;
-    },
-  ): Promise<{ dm: DM } | { error: string }> {
+  async send({
+    sender,
+    receiver,
+    message,
+  }: {
+    sender: User;
+    receiver: User;
+    message: string;
+  }): Promise<{ dm: DM } | { error: string }> {
     // Find the chat between sender and receiver (order-agnostic)
     let chatDoc = await this.chats.findOne({
       $or: [
@@ -163,16 +174,16 @@ export default class ChatConcept {
     });
 
     if (!chatDoc) {
-        this.startChat({requester: sender, receiver});
-        chatDoc = await this.chats.findOne({
-           $or: [
-                { user1: sender, user2: receiver },
-                { user1: receiver, user2: sender },
-            ],
-        })
+      this.startChat({ requester: sender, receiver });
+      chatDoc = await this.chats.findOne({
+        $or: [
+          { user1: sender, user2: receiver },
+          { user1: receiver, user2: sender },
+        ],
+      });
     }
-    if (!chatDoc){
-        return {error: "error starting chat"};
+    if (!chatDoc) {
+      return { error: "error starting chat" };
     }
 
     // Check accessibility for both users in the context of this specific chat
@@ -207,7 +218,7 @@ export default class ChatConcept {
       receiver: receiver,
     };
 
-    console.log(newDM)
+    console.log(newDM);
 
     await this.dms.insertOne(newDM);
 
@@ -223,9 +234,13 @@ export default class ChatConcept {
    *
    * **effects** Returns an array containing the ID of the chat between userA and userB, if one exists and is accessible to both.
    */
-  async _getChatBetweenUsers(
-    { userA, userB }: { userA: User; userB: User },
-  ): Promise<Array<{ chat: Chat }> | { error: string }> {
+  async _getChatBetweenUsers({
+    userA,
+    userB,
+  }: {
+    userA: User;
+    userB: User;
+  }): Promise<Array<{ chat: Chat }> | { error: string }> {
     const chatDoc = await this.chats.findOne({
       $or: [
         { user1: userA, user2: userB },
@@ -243,8 +258,12 @@ export default class ChatConcept {
     const userAIsUser1 = chatDoc.user1 === userA;
     const userBIsUser1 = chatDoc.user1 === userB;
 
-    const userAAccessible = (userAIsUser1 && chatDoc.user1Accessible) || (!userAIsUser1 && chatDoc.user2Accessible);
-    const userBAccessible = (userBIsUser1 && chatDoc.user1Accessible) || (!userBIsUser1 && chatDoc.user2Accessible);
+    const userAAccessible =
+      (userAIsUser1 && chatDoc.user1Accessible) ||
+      (!userAIsUser1 && chatDoc.user2Accessible);
+    const userBAccessible =
+      (userBIsUser1 && chatDoc.user1Accessible) ||
+      (!userBIsUser1 && chatDoc.user2Accessible);
 
     if (userAAccessible && userBAccessible) {
       return [{ chat: chatDoc._id }];
@@ -259,16 +278,32 @@ export default class ChatConcept {
    *
    * **effects** Returns an array of DMs in the specified chat.
    */
-  async _getDMsInChat(
-    { chat }: { chat: Chat },
-  ): Promise<Array<{ dm: { id: DM; time: Date; message: string; sender: User; receiver: User } }> | { error: string }> {
+  async _getDMsInChat({
+    chat,
+  }: {
+    chat: Chat;
+  }): Promise<
+    | Array<{
+        dm: {
+          id: DM;
+          time: Date;
+          message: string;
+          sender: User;
+          receiver: User;
+        };
+      }>
+    | { error: string }
+  > {
     const chatDoc = await this.chats.findOne({ _id: chat });
 
     if (!chatDoc || (!chatDoc.user1Accessible && !chatDoc.user2Accessible)) {
       return { error: "Chat not found or is inaccessible" };
     }
 
-    const dms = await this.dms.find({ chatId: chat }).sort({ time: 1 }).toArray();
+    const dms = await this.dms
+      .find({ chatId: chat })
+      .sort({ time: 1 })
+      .toArray();
 
     return dms.map((dmDoc) => ({
       dm: {
@@ -288,15 +323,19 @@ export default class ChatConcept {
    *
    * **effects** Returns an array of chat IDs that the user has access to.
    */
-  async _getAccessibleChatsForUser(
-    { user }: { user: User },
-  ): Promise<Array<{ chat: Chat }> | { error: string }> {
-    const chats = await this.chats.find({
-      $or: [
-        { user1: user, user1Accessible: true },
-        { user2: user, user2Accessible: true },
-      ],
-    }).toArray();
+  async _getAccessibleChatsForUser({
+    user,
+  }: {
+    user: User;
+  }): Promise<Array<{ chat: Chat }> | { error: string }> {
+    const chats = await this.chats
+      .find({
+        $or: [
+          { user1: user, user1Accessible: true },
+          { user2: user, user2Accessible: true },
+        ],
+      })
+      .toArray();
 
     return chats.map((chatDoc) => ({ chat: chatDoc._id }));
   }
