@@ -1,6 +1,8 @@
 import {
   ChallengeDefinition,
   ChallengeProgress,
+  ChallengeParticipation,
+  ChallengeVerification,
   Requesting,
   Session,
   UserAuthentication,
@@ -274,13 +276,45 @@ export const DeleteChallengeRequest: Sync = ({
   ]),
 });
 
-export const DeleteChallengeRemoveChallenge: Sync = ({ challenge }) => ({
+export const DeleteChallengeRemoveChallengeProgress: Sync = ({
+  challenge,
+}) => ({
   when: actions([ChallengeDefinition.deleteChallenge, { challenge }, {}]),
   where: async (frames) => {
     return frames;
   },
   then: actions([
     ChallengeProgress.removeChallenge,
+    {
+      challenge,
+    },
+  ]),
+});
+
+export const DeleteChallengeRemoveChallengeParticipation: Sync = ({
+  challenge,
+}) => ({
+  when: actions([ChallengeDefinition.deleteChallenge, { challenge }, {}]),
+  where: async (frames) => {
+    return frames;
+  },
+  then: actions([
+    ChallengeParticipation.removeChallenge,
+    {
+      challenge,
+    },
+  ]),
+});
+
+export const DeleteChallengeRemoveChallengeVerification: Sync = ({
+  challenge,
+}) => ({
+  when: actions([ChallengeDefinition.deleteChallenge, { challenge }, {}]),
+  where: async (frames) => {
+    return frames;
+  },
+  then: actions([
+    ChallengeVerification.removeChallenge,
     {
       challenge,
     },

@@ -103,6 +103,15 @@ export default class ChallengeVerificationConcept {
     return {};
   }
 
+  async removeChallenge({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Empty | { error: string }> {
+    await this.verificationRequests.deleteMany({ challenge: challenge });
+    return {};
+  }
+
   async _getRequestApprover({
     verificationRequest,
   }: {
