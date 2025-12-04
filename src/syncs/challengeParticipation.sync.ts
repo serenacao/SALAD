@@ -231,7 +231,7 @@ export const RemoveParticipationRequest: Sync = ({
   session,
   actingUser,
   participation,
-  user,
+  targetUser,
   challenge,
   creator,
   request,
@@ -256,7 +256,7 @@ export const RemoveParticipationRequest: Sync = ({
     frames = await frames.query(
       ChallengeParticipation._getParticipationUser,
       { participation },
-      { user }
+      { targetUser }
     );
     frames = await frames.query(
       ChallengeParticipation._getParticipationChallenge,
@@ -269,7 +269,7 @@ export const RemoveParticipationRequest: Sync = ({
       { creator }
     );
     frames = frames.filter(
-      ($) => $[actingUser] === $[user] || $[actingUser] === $[creator]
+      ($) => $[actingUser] === $[targetUser] || $[actingUser] === $[creator]
     );
     return frames;
   },

@@ -132,6 +132,16 @@ export default class ChallengeParticipationConcept {
     return {};
   }
 
+  async removeChallenge({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Empty | { error: string }> {
+    await this.participations.deleteMany({ challenge: challenge });
+    await this.invitations.deleteMany({ challenge: challenge });
+    return {};
+  }
+
   async _getInvitationUser({
     invitation,
   }: {
