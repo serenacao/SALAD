@@ -54,6 +54,10 @@ export default class ChallengeVerificationConcept {
     if (matchingRequest) {
       return { error: "Verification request already exists" };
     }
+
+    if (requester === approver) {
+      return { error: "Requester cannot be the same as approver" };
+    }
     const verificationRequest: VerificationRequest = freshID();
     const verificationRequestDoc = {
       _id: verificationRequest,
