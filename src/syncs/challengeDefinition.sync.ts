@@ -154,6 +154,7 @@ export const OpenChallengeResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "opened challenge",
     },
   ]),

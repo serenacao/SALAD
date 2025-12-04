@@ -271,12 +271,12 @@ export default class ChallengeDefinitionConcept {
     challenge,
   }: {
     challenge: Challenge;
-  }): Promise<Array<{ result: boolean }>> {
+  }): Promise<Array<{ isOpen: boolean }>> {
     const existingChallenge = await this.challenges.findOne({ _id: challenge });
     if (!existingChallenge) {
-      return [{ result: false }];
+      return [{ isOpen: false }];
     }
-    return [{ result: existingChallenge.open }];
+    return [{ isOpen: existingChallenge.open }];
   }
 
   /**

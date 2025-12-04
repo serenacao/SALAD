@@ -38,12 +38,6 @@ verify(verificationRequest: VerificationRequest)
 
 **effect** sets Approved to True for the associated VerificationRequest
 
-deny(verificationRequest: VerificationRequest)
-
-**requires** verificationRequest is in VerificationRequests;
-
-**effect** deletes verificationRequest from VerificationRequests
-
 **queries**
 
 \_getRequestApprover(verificationRequest: VerificationRequest): User

@@ -103,22 +103,6 @@ export default class ChallengeVerificationConcept {
     return {};
   }
 
-  async reject({
-    verificationRequest,
-  }: {
-    verificationRequest: VerificationRequest;
-  }): Promise<Empty | { error: string }> {
-    const verificationRequestDoc = await this.verificationRequests.findOne({
-      _id: verificationRequest,
-    });
-    if (!verificationRequestDoc) {
-      return { error: "Verification request does not exist" };
-    }
-    await this.verificationRequests.deleteOne({ _id: verificationRequest });
-
-    return {};
-  }
-
   async _getRequestApprover({
     verificationRequest,
   }: {
@@ -225,12 +209,17 @@ export default class ChallengeVerificationConcept {
   }: {
     user: User;
     challenge: Challenge;
-  }): Promise<Array<{ verificationRequest: VerificationRequest }>> {
+  }): Promise<Array<{ verificationRequest: VerificationRequest; part: Part }>> {
     const requests = await this.verificationRequests
       .find({ requester: user, challenge: challenge, approved: false })
       .toArray();
-    const output: Array<{ verificationRequest: VerificationRequest }> = [];
-    requests.forEach((doc) => output.push({ verificationRequest: doc._id }));
+    const output: Array<{
+      verificationRequest: VerificationRequest;
+      part: Part;
+    }> = [];
+    requests.forEach((doc) =>
+      output.push({ verificationRequest: doc._id, part: doc.part })
+    );
     return output;
   }
 
