@@ -22,7 +22,7 @@ a set of VerificationRequests with
 
 createVerificationRequest(part: Part, requester: User, approver: User, evidence: File): verificationRequest
 
-**requires** nothing
+**requires** there is not already a VerificationRequest with this requester and part
 
 **effect** creates a new VerificationRequest with requester, approver, part, evidence and Approved set to False; adds it to VerificationRequests
 

@@ -18,6 +18,7 @@ export const CreateVerificationRequest: Sync = ({
   approver,
   evidence,
   challenge,
+  partChallenge,
   isOpen,
   request,
 }) => ({
@@ -30,6 +31,7 @@ export const CreateVerificationRequest: Sync = ({
       requester,
       approver,
       evidence,
+      challenge,
     },
     { request },
   ]),
@@ -44,13 +46,14 @@ export const CreateVerificationRequest: Sync = ({
     frames = await frames.query(
       ChallengeProgress._getPartChallenge,
       { part },
-      { challenge }
+      { partChallenge }
     );
     frames = await frames.query(
       ChallengeDefinition._isOpen,
       { challenge },
       { isOpen }
     );
+    frames = frames.filter(($) => $[partChallenge] === $[challenge]);
     frames = frames.filter(($) => $[isOpen] === true);
     frames = frames.filter(($) => $[actingUser] === $[requester]);
     return frames;
@@ -98,13 +101,14 @@ export const CreateVerificationRequestResponseError: Sync = ({
   then: actions([Requesting.respond, { request, error }]),
 });
 
-// removeVerificationRequest
+// removeVerificationRequest (only requester or approver should remove request)
 
 export const RemoveVerificationRequest: Sync = ({
   session,
   actingUser,
   verificationRequest,
   requester,
+  approver,
   request,
 }) => ({
   when: actions([
@@ -129,7 +133,14 @@ export const RemoveVerificationRequest: Sync = ({
       { verificationRequest },
       { requester }
     );
-    frames = frames.filter(($) => $[actingUser] === $[requester]);
+    frames = await frames.query(
+      ChallengeVerification._getRequestApprover,
+      { verificationRequest },
+      { approver }
+    );
+    frames = frames.filter(
+      ($) => $[actingUser] === $[requester] || $[actingUser] === $[approver]
+    );
     return frames;
   },
   then: actions([
@@ -148,6 +159,7 @@ export const RemoveVerificationResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "removed verification request",
     },
   ]),
@@ -260,6 +272,7 @@ export const VerifyRequestResponseSuccess: Sync = ({ request }) => ({
   then: actions([
     Requesting.respond,
     {
+      request,
       status: "verified request",
     },
   ]),
