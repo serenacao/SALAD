@@ -72,6 +72,7 @@ export const CreateVerificationRequest: Sync = ({
       requester,
       approver,
       evidence,
+      challenge,
     },
   ]),
 });
