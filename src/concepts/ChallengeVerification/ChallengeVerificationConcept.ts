@@ -173,9 +173,9 @@ export default class ChallengeVerificationConcept {
   }
 
   async _getRequestDetails({
-    verificationRequests,
+    verificationRequest,
   }: {
-    verificationRequests: Array<VerificationRequest>;
+    verificationRequest: VerificationRequest;
   }): Promise<
     Array<{
       part: Part;
@@ -186,11 +186,9 @@ export default class ChallengeVerificationConcept {
       challenge: Challenge;
     }>
   > {
-    const requestDocs = await Promise.all(
-      verificationRequests.map((doc) =>
-        this.verificationRequests.findOne({ _id: doc })
-      )
-    );
+    const requestDoc = await this.verificationRequests.findOne({
+      _id: verificationRequest,
+    });
 
     const output: Array<{
       part: Part;
@@ -200,19 +198,16 @@ export default class ChallengeVerificationConcept {
       approved: boolean;
       challenge: Challenge;
     }> = [];
-    requestDocs.forEach((doc) => {
-      if (!doc) {
-        return [];
-      }
+    if (requestDoc) {
       output.push({
-        part: doc.part,
-        evidence: doc.evidence,
-        approver: doc.approver,
-        requester: doc.requester,
-        approved: doc.approved,
-        challenge: doc.challenge,
+        part: requestDoc.part,
+        evidence: requestDoc.evidence,
+        approver: requestDoc.approver,
+        requester: requestDoc.requester,
+        challenge: requestDoc.challenge,
+        approved: requestDoc.approved,
       });
-    });
+    }
     return output;
   }
 
