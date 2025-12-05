@@ -43,19 +43,26 @@ export const CreateVerificationRequest: Sync = ({
         user: actingUser,
       }
     );
-    frames = await frames.query(
-      ChallengeProgress._getPartChallenge,
-      { part },
-      { partChallenge }
-    );
+    console.log(`frames after getting actingUser: ${frames}`);
     frames = await frames.query(
       ChallengeDefinition._isOpen,
       { challenge },
       { isOpen }
     );
-    frames = frames.filter(($) => $[partChallenge] === $[challenge]);
+    console.log(`frames after getting isOpen: ${frames}`);
     frames = frames.filter(($) => $[isOpen] === true);
+    console.log(`frames after confirming isOpen: ${frames}`);
+    frames = await frames.query(
+      ChallengeProgress._getPartChallenge,
+      { part },
+      { challenge: partChallenge }
+    );
+    console.log(`frames after getting partChallenge: ${frames}`);
+
+    frames = frames.filter(($) => $[partChallenge] === $[challenge]);
+
     frames = frames.filter(($) => $[actingUser] === $[requester]);
+    console.log(`frames after confirming actingUser=requester: ${frames}`);
     return frames;
   },
   then: actions([
@@ -84,6 +91,7 @@ export const CreateVerificationRequestResponseSuccess: Sync = ({
   then: actions([
     Requesting.respond,
     {
+      request,
       verificationRequest,
       status: "requested verification",
     },
