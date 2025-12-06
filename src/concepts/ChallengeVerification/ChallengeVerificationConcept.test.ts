@@ -191,7 +191,7 @@ Deno.test("ChallengeVerificationConcept", async (t) => {
   //
   await t.step("_getRequestDetails", async () => {
     const result = await concept._getRequestDetails({
-      verificationRequests: [vr1, freshID()],
+      verificationRequest: vr1,
     });
 
     assertEquals(result.length, 1);
