@@ -12,6 +12,7 @@ import { actions, Sync } from "@engine";
 // createChallenge
 
 export const CreateChallengeRequest: Sync = ({
+  name,
   session,
   exercise,
   level,
@@ -26,6 +27,7 @@ export const CreateChallengeRequest: Sync = ({
     {
       path: "/createChallenge",
       session,
+      name,
       exercise,
       daysPerWeek,
       weeks,
@@ -47,6 +49,7 @@ export const CreateChallengeRequest: Sync = ({
   then: actions([
     ChallengeDefinition.createChallenge,
     {
+      name,
       exercise,
       daysPerWeek,
       weeks,
