@@ -10,6 +10,10 @@ a set of Challenge Challenges with
 
 &ensp; a User Creator
 
+&ensp; a Date DateCreated
+
+&ensp; a string Name
+
 &ensp; a string Exercise
 
 &ensp; a string ExerciseType (Anaerobic, RepAerobic or DistanceAerobic)
@@ -48,11 +52,11 @@ a set of Challenge Challenges with
 
 **actions**
 
-createChallenge(creator: User, level: number, exercise: string, info: AnaerobicInfo, RepAerobicInfo or DistanceAerobicInfo, daysPerWeek: number, weeks: number)
+createChallenge(name: string, creator: User, level: number, exercise: string, info: AnaerobicInfo, RepAerobicInfo or DistanceAerobicInfo, daysPerWeek: number, weeks: number)
 
-**requires** level is an integer in \{1, 2, 3\}, all fields in info are positive numbers, daysPerWeek and weeks are positive integers
+**requires** level is an integer in \{1, 2, 3\}, all fields in info are positive numbers, daysPerWeek and weeks are positive integers, name is nonempty string
 
-**effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, daysPerWeek and weeks; creates a new Part for every week and day of the challenge with Completers set to an empty set
+**effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, daysPerWeek and weeks; sets DateCreated to the date this action is called
 
 openChallenge(challenge: Challenge)
 
