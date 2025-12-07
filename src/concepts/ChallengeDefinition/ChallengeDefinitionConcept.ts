@@ -46,7 +46,7 @@ export type DistanceAerobicInfo = {
  */
 interface ChallengeDoc {
   _id: Challenge;
-
+  name: string;
   creator: User;
   exercise: string;
   info: AnaerobicInfo | RepAerobicInfo | DistanceAerobicInfo;
@@ -56,6 +56,7 @@ interface ChallengeDoc {
   partPoints: number; // per part
   bonusPoints: number; // upon completion of entire challenge
   open: boolean;
+  dateCreated: Date;
 }
 
 export default class ChallengeDefinitionConcept {
@@ -123,6 +124,7 @@ export default class ChallengeDefinitionConcept {
    * **effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, daysPerWeek and weeks; creates a new Part for every week and day of the challenge with Completers set to an empty set
    */
   async createChallenge({
+    name,
     creator,
     exercise,
     level,
@@ -130,6 +132,7 @@ export default class ChallengeDefinitionConcept {
     daysPerWeek,
     weeks,
   }: {
+    name: string;
     creator: User;
     level: number;
     exercise: string;
@@ -146,6 +149,10 @@ export default class ChallengeDefinitionConcept {
     }
     if (!Number.isInteger(weeks) || weeks <= 0) {
       return { error: "Weeks must be a positive integer." };
+    }
+
+    if (name === "") {
+      return { error: "Name cannot be empty" };
     }
 
     for (const [key, value] of Object.entries(info)) {
@@ -172,8 +179,11 @@ export default class ChallengeDefinitionConcept {
     const partPoints = this.calculatePartPoints(level, info);
     const bonusPoints = this.calculateBonusPoints(level, daysPerWeek, weeks);
 
+    const dateCreated = new Date();
+
     const newChallenge: ChallengeDoc = {
       _id: newChallengeId,
+      name,
       creator,
       exercise,
       info,
@@ -182,6 +192,7 @@ export default class ChallengeDefinitionConcept {
       level,
       partPoints,
       bonusPoints,
+      dateCreated,
       open: false,
     };
 
@@ -306,6 +317,38 @@ export default class ChallengeDefinitionConcept {
         daysPerWeek: existingChallenge.daysPerWeek,
         weeks: existingChallenge.weeks,
         info: existingChallenge.info,
+      },
+    ];
+  }
+
+  async _getChallengeName({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ name: string }>> {
+    const existingChallenge = await this.challenges.findOne({ _id: challenge });
+    if (!existingChallenge) {
+      return [];
+    }
+    return [
+      {
+        name: existingChallenge.name,
+      },
+    ];
+  }
+
+  async _getDateCreated({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ dateCreated: Date }>> {
+    const existingChallenge = await this.challenges.findOne({ _id: challenge });
+    if (!existingChallenge) {
+      return [];
+    }
+    return [
+      {
+        dateCreated: existingChallenge.dateCreated,
       },
     ];
   }
