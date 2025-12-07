@@ -20,6 +20,7 @@ interface VerificationRequestDoc {
   approver: User;
   part: Part;
   challenge: Challenge;
+  dateCompleted: Date;
   approved: boolean;
 }
 
@@ -38,12 +39,14 @@ export default class ChallengeVerificationConcept {
     requester,
     approver,
     evidence,
+    dateCompleted,
   }: {
     challenge: Challenge;
     part: Part;
     requester: User;
     approver: User;
     evidence: File;
+    dateCompleted: Date;
   }): Promise<
     { verificationRequest: VerificationRequest } | { error: string }
   > {
@@ -61,12 +64,13 @@ export default class ChallengeVerificationConcept {
     const verificationRequest: VerificationRequest = freshID();
     const verificationRequestDoc = {
       _id: verificationRequest,
-      evidence: evidence,
-      requester: requester,
-      approver: approver,
-      part: part,
-      challenge: challenge,
+      evidence,
+      requester,
+      approver,
+      part,
+      challenge,
       approved: false,
+      dateCompleted: new Date(dateCompleted),
     };
     await this.verificationRequests.insertOne(verificationRequestDoc);
     return { verificationRequest: verificationRequest };
@@ -158,6 +162,20 @@ export default class ChallengeVerificationConcept {
     return [{ part: verificationRequestDoc.part }];
   }
 
+  async _getRequestDateCompleted({
+    verificationRequest,
+  }: {
+    verificationRequest: VerificationRequest;
+  }): Promise<Array<{ dateCompleted: Date }>> {
+    const verificationRequestDoc = await this.verificationRequests.findOne({
+      _id: verificationRequest,
+    });
+    if (!verificationRequestDoc) {
+      return [];
+    }
+    return [{ dateCompleted: verificationRequestDoc.dateCompleted }];
+  }
+
   async _getRequestChallenge({
     verificationRequest,
   }: {
@@ -184,6 +202,7 @@ export default class ChallengeVerificationConcept {
       requester: User;
       approved: boolean;
       challenge: Challenge;
+      dateCompleted: Date;
     }>
   > {
     const requestDoc = await this.verificationRequests.findOne({
@@ -197,6 +216,7 @@ export default class ChallengeVerificationConcept {
       requester: User;
       approved: boolean;
       challenge: Challenge;
+      dateCompleted: Date;
     }> = [];
     if (requestDoc) {
       output.push({
@@ -206,6 +226,7 @@ export default class ChallengeVerificationConcept {
         requester: requestDoc.requester,
         challenge: requestDoc.challenge,
         approved: requestDoc.approved,
+        dateCompleted: requestDoc.dateCompleted,
       });
     }
     return output;

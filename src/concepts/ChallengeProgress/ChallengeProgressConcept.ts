@@ -24,6 +24,7 @@ interface CompletionDoc {
   part: Part;
   user: User;
   challenge: Challenge;
+  dateCompleted: Date;
 }
 
 interface UploadedChallengeDoc {
@@ -97,9 +98,11 @@ export default class ChallengeProgressConcept {
   async completePart({
     part,
     user,
+    dateCompleted,
   }: {
     part: Part;
     user: User;
+    dateCompleted: Date;
   }): Promise<Empty | { error: string }> {
     const partDoc = await this.parts.findOne({ _id: part });
     if (!partDoc) {
@@ -108,8 +111,9 @@ export default class ChallengeProgressConcept {
 
     const completionDoc: CompletionDoc = {
       _id: freshID(),
-      part: part,
-      user: user,
+      part,
+      user,
+      dateCompleted: new Date(dateCompleted),
       challenge: partDoc.challenge,
     };
 

@@ -21,6 +21,7 @@ export const CreateVerificationRequest: Sync = ({
   partChallenge,
   isOpen,
   request,
+  dateCompleted,
 }) => ({
   when: actions([
     Requesting.request,
@@ -32,6 +33,7 @@ export const CreateVerificationRequest: Sync = ({
       approver,
       evidence,
       challenge,
+      dateCompleted,
     },
     { request },
   ]),
@@ -73,6 +75,7 @@ export const CreateVerificationRequest: Sync = ({
       approver,
       evidence,
       challenge,
+      dateCompleted,
     },
   ]),
 });
@@ -247,6 +250,7 @@ export const VerifyCompletePart: Sync = ({
   verificationRequest,
   part,
   user,
+  dateCompleted,
 }) => ({
   when: actions([ChallengeVerification.verify, { verificationRequest }, {}]),
   where: async (frames) => {
@@ -262,6 +266,11 @@ export const VerifyCompletePart: Sync = ({
       { verificationRequest },
       { requester: user }
     );
+    frames = await frames.query(
+      ChallengeVerification._getRequestDateCompleted,
+      { verificationRequest },
+      { dateCompleted }
+    );
     return frames;
   },
   then: actions([
@@ -269,6 +278,7 @@ export const VerifyCompletePart: Sync = ({
     {
       part,
       user,
+      dateCompleted,
     },
   ]),
 });

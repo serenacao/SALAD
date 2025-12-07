@@ -99,6 +99,7 @@ Deno.test("ChallengeProgressConcept", async (t) => {
           const result: Empty | { error: string } = await concept.completePart({
             part: part1_1,
             user: USER_ID_1,
+            dateCompleted: new Date(),
           });
           assertEquals(
             result,
@@ -137,6 +138,7 @@ Deno.test("ChallengeProgressConcept", async (t) => {
           const result: Empty | { error: string } = await concept.completePart({
             part: NON_EXISTENT_PART_ID,
             user: USER_ID_1,
+            dateCompleted: new Date(),
           });
           assertNotEquals(
             result,
@@ -171,6 +173,7 @@ Deno.test("ChallengeProgressConcept", async (t) => {
           const result: Empty | { error: string } = await concept.completePart({
             part: anotherPart,
             user: USER_ID_1,
+            dateCompleted: new Date(),
           });
           assertEquals(
             result,
@@ -220,6 +223,7 @@ Deno.test("ChallengeProgressConcept", async (t) => {
           const result: Empty | { error: string } = await concept.completePart({
             part: user2Part,
             user: USER_ID_2,
+            dateCompleted: new Date(),
           });
           assertEquals(
             result,
@@ -579,6 +583,7 @@ Deno.test("ChallengeProgressConcept", async (t) => {
         const result: Empty | { error: string } = await concept.completePart({
           part: existingPartId,
           user: TEST_USER_ID,
+          dateCompleted: new Date(),
         });
         assertEquals(result, {}, "Should successfully complete the part");
 
@@ -606,6 +611,7 @@ Deno.test("ChallengeProgressConcept", async (t) => {
         const result: Empty | { error: string } = await concept.completePart({
           part: nonExistentPartId,
           user: TEST_USER_ID,
+          dateCompleted: new Date(),
         });
         assertEquals(
           result,
@@ -697,7 +703,11 @@ Deno.test("ChallengeProgressConcept", async (t) => {
         const partA: ID = allParts.find((p) => p.day === 1)?.part as ID;
         const partB: ID = allParts.find((p) => p.day === 2)?.part as ID;
 
-        await concept.completePart({ part: partA, user: queryUserId });
+        await concept.completePart({
+          part: partA,
+          user: queryUserId,
+          dateCompleted: new Date(),
+        });
 
         await t.step("`_getPartDayWeek`", async () => {
           console.log("  Testing `_getPartDayWeek`...");
@@ -807,7 +817,11 @@ Deno.test("ChallengeProgressConcept", async (t) => {
           );
 
           // Complete the remaining part
-          await concept.completePart({ part: partB, user: queryUserId });
+          await concept.completePart({
+            part: partB,
+            user: queryUserId,
+            dateCompleted: new Date(),
+          });
           const result2 = await concept._allPartsCompleted({
             user: queryUserId,
             challenge: queryChallengeId,

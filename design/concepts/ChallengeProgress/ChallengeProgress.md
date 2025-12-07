@@ -22,6 +22,8 @@ a set of Completion Completions with
 
 &ensp; a User
 
+&ensp; a Date DateCompleted
+
 **actions**
 
 uploadChallenge(challenge: Challenge, daysOfWeek: Number, weeks: Number)
@@ -36,11 +38,11 @@ removeChallenge(challenge: Challenge)
 
 **effect** removes every Part with challenge
 
-completePart(part: Part, user: User)
+completePart(part: Part, user: User, dateCompleted: Date)
 
 **requires** part exists in Parts
 
-**effect** creates a Completion with part and user; adds it to Completions
+**effect** creates a Completion with part, user and dateCompleted; adds it to Completions
 
 **queries**
 
