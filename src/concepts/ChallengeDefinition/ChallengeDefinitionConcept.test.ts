@@ -12,6 +12,8 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
   const concept = new ChallengeDefinitionConcept(db);
 
   // Define test users and challenges
+  const name1: string = "Challenge 1";
+  const name2: string = "Challenge 2";
   const testUser1: ID = "user123" as ID;
   const testUser2: ID = "user456" as ID;
   let challengeId1: ID;
@@ -55,6 +57,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         sets: 3,
         reps: 10,
       };
+      const name = name1;
       const creator = testUser1;
       const exercise = "Bench Press";
       const level = 2;
@@ -62,6 +65,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       const weeks = 4;
 
       const result = await concept.createChallenge({
+        name,
         creator,
         exercise,
         level,
@@ -164,6 +168,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         repSpeed: 60,
         minutes: 30,
       };
+      const name = name2;
       const creator = testUser2;
       const exercise = "Jumping Jacks";
       const level = 1;
@@ -171,6 +176,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       const weeks = 2;
 
       const result = await concept.createChallenge({
+        name,
         creator,
         exercise,
         level,
@@ -225,12 +231,14 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         minutes: 45,
       };
       const creator = testUser1;
+      const name = name1;
       const exercise = "Running";
       const level = 3;
       const daysPerWeek = 2;
       const weeks = 8;
 
       const result = await concept.createChallenge({
+        name,
         creator,
         exercise,
         level,
@@ -287,6 +295,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
 
       // Test invalid level
       let result = await concept.createChallenge({
+        name: name1,
         creator: testUser1,
         exercise: "Pushups",
         level: 0,
@@ -301,6 +310,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       );
 
       result = await concept.createChallenge({
+        name: name1,
         creator: testUser1,
         exercise: "Pushups",
         level: 4,
@@ -316,6 +326,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
 
       // Test invalid daysPerWeek
       result = await concept.createChallenge({
+        name: name1,
         creator: testUser1,
         exercise: "Pushups",
         level: 1,
@@ -331,6 +342,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
 
       // Test invalid weeks
       result = await concept.createChallenge({
+        name: name1,
         creator: testUser1,
         exercise: "Pushups",
         level: 1,
@@ -351,6 +363,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         reps: 10,
       };
       result = await concept.createChallenge({
+        name: name1,
         creator: testUser1,
         exercise: "Squats",
         level: 1,
@@ -366,6 +379,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
 
       invalidInfo = { _type: "AnaerobicInfo", sets: 3, reps: 0 };
       result = await concept.createChallenge({
+        name: name1,
         creator: testUser1,
         exercise: "Squats",
         level: 1,
@@ -385,6 +399,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         minutes: 20,
       };
       result = await concept.createChallenge({
+        name: name1,
         creator: testUser1,
         exercise: "Burpees",
         level: 1,
@@ -404,6 +419,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         minutes: -10,
       };
       result = await concept.createChallenge({
+        name: name1,
         creator: testUser1,
         exercise: "Running",
         level: 1,
@@ -640,9 +656,11 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         sets: 4,
         reps: 8,
       };
+      const name = name1;
 
       console.log("Step 1: Create a new challenge.");
       const createResult = await concept.createChallenge({
+        name,
         creator,
         exercise,
         level,

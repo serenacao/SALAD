@@ -46,7 +46,7 @@ export type DistanceAerobicInfo = {
  */
 interface ChallengeDoc {
   _id: Challenge;
-
+  name: string;
   creator: User;
   exercise: string;
   info: AnaerobicInfo | RepAerobicInfo | DistanceAerobicInfo;
@@ -123,6 +123,7 @@ export default class ChallengeDefinitionConcept {
    * **effect** creates a new Challenge with the given fields, Open set to False, calculates Points based on level and BonusPoints based on level, daysPerWeek and weeks; creates a new Part for every week and day of the challenge with Completers set to an empty set
    */
   async createChallenge({
+    name,
     creator,
     exercise,
     level,
@@ -130,6 +131,7 @@ export default class ChallengeDefinitionConcept {
     daysPerWeek,
     weeks,
   }: {
+    name: string;
     creator: User;
     level: number;
     exercise: string;
@@ -174,6 +176,7 @@ export default class ChallengeDefinitionConcept {
 
     const newChallenge: ChallengeDoc = {
       _id: newChallengeId,
+      name,
       creator,
       exercise,
       info,
@@ -306,6 +309,22 @@ export default class ChallengeDefinitionConcept {
         daysPerWeek: existingChallenge.daysPerWeek,
         weeks: existingChallenge.weeks,
         info: existingChallenge.info,
+      },
+    ];
+  }
+
+  async _getChallengeName({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ name: string }>> {
+    const existingChallenge = await this.challenges.findOne({ _id: challenge });
+    if (!existingChallenge) {
+      return [];
+    }
+    return [
+      {
+        name: existingChallenge.name,
       },
     ];
   }
