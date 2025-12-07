@@ -113,7 +113,7 @@ export default class ChallengeProgressConcept {
       _id: freshID(),
       part,
       user,
-      dateCompleted,
+      dateCompleted: new Date(dateCompleted),
       challenge: partDoc.challenge,
     };
 

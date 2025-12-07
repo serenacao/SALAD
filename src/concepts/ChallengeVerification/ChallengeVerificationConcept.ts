@@ -70,7 +70,7 @@ export default class ChallengeVerificationConcept {
       part,
       challenge,
       approved: false,
-      dateCompleted,
+      dateCompleted: new Date(dateCompleted),
     };
     await this.verificationRequests.insertOne(verificationRequestDoc);
     return { verificationRequest: verificationRequest };
