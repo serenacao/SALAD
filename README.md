@@ -1,5 +1,7 @@
 # SALAD
 
+[User Testing Task List](./design/User%20Testing%20Task%20List.pdf)
+
 [Checkpoint Beta Updated Development Plan](./design/Checkpoint%20Beta%20New%20Development%20Plan.pdf)
 [Checkpoint Alpha Updated Development Plan](./design/Checkpoint%20Alpha%20New%20Development%20Plan.pdf)
 
