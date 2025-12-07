@@ -56,6 +56,7 @@ interface ChallengeDoc {
   partPoints: number; // per part
   bonusPoints: number; // upon completion of entire challenge
   open: boolean;
+  dateCreated: Date;
 }
 
 export default class ChallengeDefinitionConcept {
@@ -174,6 +175,8 @@ export default class ChallengeDefinitionConcept {
     const partPoints = this.calculatePartPoints(level, info);
     const bonusPoints = this.calculateBonusPoints(level, daysPerWeek, weeks);
 
+    const dateCreated = new Date();
+
     const newChallenge: ChallengeDoc = {
       _id: newChallengeId,
       name,
@@ -185,6 +188,7 @@ export default class ChallengeDefinitionConcept {
       level,
       partPoints,
       bonusPoints,
+      dateCreated,
       open: false,
     };
 
@@ -325,6 +329,22 @@ export default class ChallengeDefinitionConcept {
     return [
       {
         name: existingChallenge.name,
+      },
+    ];
+  }
+
+  async _getDateCreated({
+    challenge,
+  }: {
+    challenge: Challenge;
+  }): Promise<Array<{ dateCreated: Date }>> {
+    const existingChallenge = await this.challenges.findOne({ _id: challenge });
+    if (!existingChallenge) {
+      return [];
+    }
+    return [
+      {
+        dateCreated: existingChallenge.dateCreated,
       },
     ];
   }
