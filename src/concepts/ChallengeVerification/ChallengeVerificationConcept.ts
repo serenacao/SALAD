@@ -162,6 +162,20 @@ export default class ChallengeVerificationConcept {
     return [{ part: verificationRequestDoc.part }];
   }
 
+  async _getRequestDateCompleted({
+    verificationRequest,
+  }: {
+    verificationRequest: VerificationRequest;
+  }): Promise<Array<{ dateCompleted: Date }>> {
+    const verificationRequestDoc = await this.verificationRequests.findOne({
+      _id: verificationRequest,
+    });
+    if (!verificationRequestDoc) {
+      return [];
+    }
+    return [{ dateCompleted: verificationRequestDoc.dateCompleted }];
+  }
+
   async _getRequestChallenge({
     verificationRequest,
   }: {
