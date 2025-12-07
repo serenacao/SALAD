@@ -40,6 +40,7 @@ Deno.test("ChallengeVerificationConcept", async (t) => {
         requester: user1,
         approver: approver1,
         evidence: evidence1,
+        dateCompleted: new Date(),
       });
 
       assertExists(
@@ -69,6 +70,7 @@ Deno.test("ChallengeVerificationConcept", async (t) => {
         requester: user1,
         approver: approver1,
         evidence: evidence2,
+        dateCompleted: new Date(),
       });
 
       assertExists(
@@ -98,6 +100,7 @@ Deno.test("ChallengeVerificationConcept", async (t) => {
           requester: user1,
           approver: approver1,
           evidence: freshID(),
+          dateCompleted: new Date(),
         });
 
         assertEquals(
@@ -216,6 +219,7 @@ Deno.test("ChallengeVerificationConcept", async (t) => {
       requester: user2,
       approver: approver1,
       evidence: freshID(),
+      dateCompleted: new Date(),
     });
 
     const vr_new = (req as { verificationRequest: VerificationRequest })
@@ -254,6 +258,7 @@ Deno.test("ChallengeVerificationConcept", async (t) => {
       requester: user1,
       approver: approver1,
       evidence: freshID(),
+      dateCompleted: new Date(),
     });
 
     const vrNew = (req as { verificationRequest: VerificationRequest })
