@@ -151,6 +151,10 @@ export default class ChallengeDefinitionConcept {
       return { error: "Weeks must be a positive integer." };
     }
 
+    if (name === "") {
+      return { error: "Name cannot be empty" };
+    }
+
     for (const [key, value] of Object.entries(info)) {
       if (key === "reps" || key === "sets") {
         if (typeof value !== "number") {
