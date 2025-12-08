@@ -168,12 +168,12 @@ export default class LeaderboardConcept {
       .find({ _id: { $in: users } })
       .sort({ points: -1 })
       .toArray();
-
-    if (userDocs.length !== users.length) {
-      const foundUsers = new Set(userDocs.map((u) => u._id));
-      const missingUsers = users.filter((u) => !foundUsers.has(u));
-      return [{ error: `Users not found: ${missingUsers.join(", ")}` }];
-    }
+    
+    // if (userDocs.length !== users.length) {
+    //   const foundUsers = new Set(userDocs.map((u) => u._id));
+    //   const missingUsers = users.filter((u) => !foundUsers.has(u));
+    //   return [{ error: `Users not found: ${missingUsers.join(", ")}` }];
+    // }
 
     return userDocs.map((doc) => ({ user: doc._id, points: doc.points }));
   }

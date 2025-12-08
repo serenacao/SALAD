@@ -32,6 +32,8 @@ export const inclusions: Record<string, string> = {
   "/api/UserAuthentication/_getUser": "public query",
   "/api/UserAuthentication/_getKerb": "public query",
   "/api/UserAuthentication/_isUser": "public query",
+  "/api/UserAuthentication/_getUsername": "public query",
+  "/api/UserAuthentication/_getAllUsers": "public query",
 
   "/api/Session/_getUser": "public query",
 
@@ -44,6 +46,11 @@ export const inclusions: Record<string, string> = {
   "/api/Group/_getGroupRequests": "public query",
   "/api/Group/_getUserRequests": "public query",
   "/api/Group/_getRequestDetails":"public query",
+
+  "/api/Leaderboard/_getUserPoints": "public query",
+  "/api/Leaderboard/_getGroupPoints": "public query",
+  "/api/Leaderboard/_getUserRanking": "public query",
+  "/api/Leaderboard/_getGroupRanking": "public query",
 };
 
 /**
@@ -64,6 +71,7 @@ export const exclusions: Array<string> = [
   "/api/UserAuthentication/logout",
   "/api/UserAuthentication/removeUser",
   "/api/UserAuthentication/updateKerb",
+  "/api/UserAuthentication/updateUsername",
   "/api/UserAuthentication/updatePassword",
   "/api/UserAuthentication/setProduceFoodStud",
   "/api/UserAuthentication/setCostcoFoodStud",
@@ -101,4 +109,11 @@ export const exclusions: Array<string> = [
   "/api/ChallengeVerification/createVerificationRequest",
   "/api/ChallengeVerification/verify",
   "/api/ChallengeVerification/removeVerificationRequest",
+
+  "/api/Leaderboard/addUser",
+  "/api/Leaderboard/removeUser",
+  "/api/Leaderboard/addPoints",
+  "/api/Leaderboard/removePoints",
+  "/api/Leaderboard/addGroup",
+  "/api/Leaderboard/removeGroup"
 ];
