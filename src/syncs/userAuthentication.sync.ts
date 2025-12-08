@@ -1,4 +1,4 @@
-import { Requesting, Session, UserAuthentication } from "@concepts";
+import { Requesting, Session, UserAuthentication, Leaderboard } from "@concepts";
 import { actions, Sync } from "@engine";
 
 // user login and session creation
@@ -25,7 +25,10 @@ export const LoginCreateSession: Sync = ({ user }) => ({
       user,
     },
   ]),
-  then: actions([Session.create, { user }]),
+  then: actions(
+    [Session.create, { user }],
+    [Leaderboard.addUser, { user }]
+  ),
 });
 
 export const LoginResponseSuccess: Sync = ({ request, user, session }) => ({
@@ -38,7 +41,8 @@ export const LoginResponseSuccess: Sync = ({ request, user, session }) => ({
         user,
       },
     ],
-    [Session.create, { user }, { session }]
+    [Session.create, { user }, { session }],
+    [Leaderboard.addUser, { user }, {}]
   ),
   then: actions([
     Requesting.respond,
