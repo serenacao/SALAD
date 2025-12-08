@@ -207,7 +207,7 @@ async _getGroups({
   user,
 }: {
   user: User;
-}): Promise<{ groups: Array<{ group: Group; name: string; leader: User }> }> {
+}): Promise<Array<{ group: Group; name: string; leader: User }>> {
   const membershipDocs = await this.memberships.find({ member: user }).toArray();
   const groupDocs = await Promise.all(
     membershipDocs.map((doc) => this.groups.findOne({ _id: doc.group }))
@@ -221,7 +221,7 @@ async _getGroups({
       leader: doc!.leader,
     }));
 
-  return { groups };
+  return groups ;
 }
 
 // ------------------------------
@@ -231,12 +231,10 @@ async _getMembers({
   group,
 }: {
   group: Group;
-}): Promise<{ members: User[] }> {
+}): Promise<User[]> {
   const membershipDocs = await this.memberships.find({ group }).toArray();
 
-  return {
-    members: membershipDocs.map((doc) => doc.member),
-  };
+  return membershipDocs.map((doc) => doc.member);
 }
 
 // ------------------------------
@@ -246,9 +244,9 @@ async _getLeader({
   group,
 }: {
   group: Group;
-}): Promise<{ leader: User | null }> {
+}): Promise<[{leader: User | null}]> {
   const groupDoc = await this.groups.findOne({ _id: group });
-  return { leader: groupDoc ? groupDoc.leader : null };
+  return [{ leader: groupDoc ? groupDoc.leader : null }];
 }
 
 // ------------------------------
@@ -258,9 +256,9 @@ async _getName({
   group,
 }: {
   group: Group;
-}): Promise<{ name: string | null }> {
+}): Promise<[{ name: string | null }]> {
   const groupDoc = await this.groups.findOne({ _id: group });
-  return { name: groupDoc ? groupDoc.name : null };
+  return [{ name: groupDoc ? groupDoc.name : null }];
 }
 
 // ------------------------------
@@ -270,26 +268,24 @@ async _isPrivate({
   group,
 }: {
   group: Group;
-}): Promise<{ isPrivate: boolean | null }> {
+}): Promise<[{ isPrivate: boolean | null }]> {
   const groupDoc = await this.groups.findOne({ _id: group });
-  return { isPrivate: groupDoc ? groupDoc.privateGroup : null };
+  return [{ isPrivate: groupDoc ? groupDoc.privateGroup : null }];
 }
 
 // ------------------------------
 // Get all public groups
 // ------------------------------
-async _getPublicGroups({}): Promise<{
-  groups: Array<{ group: Group; name: string; leader: User }>;
-}> {
+async _getPublicGroups({}): Promise<
+  Array<{ group: Group; name: string; leader: User }>
+> {
   const groupDocs = await this.groups.find({ privateGroup: false }).toArray();
 
-  return {
-    groups: groupDocs.map((doc) => ({
+  return groupDocs.map((doc) => ({
       group: doc._id,
       name: doc.name,
       leader: doc.leader,
-    })),
-  };
+    }));
 }
 
 // ------------------------------
@@ -299,17 +295,15 @@ async _getGroupRequests({
   group,
 }: {
   group: Group;
-}): Promise<{
-  requests: Array<{ membershipRequest: MembershipRequest; requester: User }>;
-}> {
+}): Promise<
+  Array<{ membershipRequest: MembershipRequest; requester: User }>
+> {
   const requestDocs = await this.membershipRequests.find({ group }).toArray();
 
-  return {
-    requests: requestDocs.map((doc) => ({
+  return requestDocs.map((doc) => ({
       membershipRequest: doc._id,
       requester: doc.requester,
-    })),
-  };
+    }));
 }
 
 // ------------------------------
@@ -319,19 +313,16 @@ async _getUserRequests({
   user,
 }: {
   user: User;
-}): Promise<{
-  requests: Array<{ membershipRequest: MembershipRequest; group: Group }>;
-}> {
+}): Promise<
+  Array<{ membershipRequest: MembershipRequest; group: Group }>> {
   const requestDocs = await this.membershipRequests
     .find({ requester: user })
     .toArray();
 
-  return {
-    requests: requestDocs.map((doc) => ({
+  return requestDocs.map((doc) => ({
       membershipRequest: doc._id,
       group: doc.group,
-    })),
-  };
+    }));
 }
 
 // ------------------------------
@@ -341,17 +332,17 @@ async _getRequestDetails({
   membershipRequest,
 }: {
   membershipRequest: MembershipRequest;
-}): Promise<{ user: User | null; group: Group | null }> {
+}): Promise<[{ user: User | null; group: Group | null }]> {
   const requestDoc = await this.membershipRequests.findOne({
     _id: membershipRequest,
   });
 
-  if (!requestDoc) return { user: null, group: null };
+  if (!requestDoc) return [{ user: null, group: null }];
 
-  return {
+  return [{
     user: requestDoc.requester,
     group: requestDoc.group,
-  };
+  }];
 }
 
 }
