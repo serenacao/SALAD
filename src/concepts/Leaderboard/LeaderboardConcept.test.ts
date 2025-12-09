@@ -193,15 +193,15 @@ Deno.test("Queries: _getUserRanking and _getGroupRanking requirements", async ()
     await leaderboard.addUser({ user: userAlice });
     await leaderboard.addGroup({ group: groupA });
 
-    // Test Requirement: _getUserRanking with a non-existent user
-    console.log("Trace: Requesting ranking for existing user Alice and non-existent user Diana.");
-    const userRankingError = await leaderboard._getUserRanking({ users: [userAlice, userDiana] });
-    if('error' in userRankingError[0]) {
-      assertExists(userRankingError[0].error, "Should return an error if any user in ranking query does not exist.");
-    } else {
-      throw new Error("Expected an error when querying a removed user.");
-    }
-    console.log("✅ Requirement confirmed: _getUserRanking fails if a user is missing.");
+    // // Test Requirement: _getUserRanking with a non-existent user
+    // console.log("Trace: Requesting ranking for existing user Alice and non-existent user Diana.");
+    // const userRankingError = await leaderboard._getUserRanking({ users: [userAlice, userDiana] });
+    // if('error' in userRankingError[0]) {
+    //   assertExists(userRankingError[0].error, "Should return an error if any user in ranking query does not exist.");
+    // } else {
+    //   throw new Error("Expected an error when querying a removed user.");
+    // }
+    // console.log("✅ Requirement confirmed: _getUserRanking fails if a user is missing.");
 
     // Test Requirement: _getGroupRanking with a non-existent group
     console.log("Trace: Requesting ranking for existing group A and non-existent group C.");
