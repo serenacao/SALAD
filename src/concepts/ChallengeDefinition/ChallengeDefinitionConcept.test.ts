@@ -5,7 +5,7 @@ import ChallengeDefinitionConcept, {
   RepAerobicInfo,
   DistanceAerobicInfo,
 } from "./ChallengeDefinitionConcept.ts";
-import { ID } from "@utils/types.ts";
+import { ID, Level } from "@utils/types.ts";
 
 Deno.test("ChallengeDefinition Concept Tests", async (t) => {
   const [db, client] = await testDb();
@@ -19,34 +19,60 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
   let challengeId1: ID;
   let challengeId2: ID;
 
-  // --- Helper function for calculating expected points (based on concept's private methods) ---
-  const calculateExpectedPartPoints = (
-    level: number,
+  function getLevelPts(level: Level): number {
+    return level === "Easy" ? 1 : level === "Moderate" ? 1.5 : 1.8;
+  }
+  /**
+   * Helper function to calculate points based on challenge info.
+   * This is an arbitrary calculation based on the spec's hint.
+   */
+  function calculatePartPoints(
+    level: Level,
     info: RepAerobicInfo | DistanceAerobicInfo | AnaerobicInfo
-  ): number => {
-    let basePoints = level * 10;
+  ): number {
+    const levelPts = getLevelPts(level);
+    let basePoints = levelPts * 10;
     if (info._type === "RepAerobicInfo") {
-      basePoints += info.repSpeed * info.minutes;
+      return (basePoints += calculateRepAerobicPartPoints(info));
     } else if (info._type === "DistanceAerobicInfo") {
-      basePoints += (info.distanceSpeed / 100) * info.minutes;
+      return (basePoints += calculateDistanceAerobicPartPoints(info));
     } else {
-      let points = info.reps * info.sets;
-      if (info.weight) {
-        points *= info.weight / 10;
-      }
-      basePoints += points;
+      return (basePoints += calculateAnaerobicPartPoints(info));
     }
-    return basePoints;
-  };
+  }
 
-  const calculateExpectedBonusPoints = (
-    level: number,
+  function calculateRepAerobicPartPoints(info: RepAerobicInfo): number {
+    const points = info.repSpeed * info.minutes;
+    return points;
+  }
+
+  function calculateDistanceAerobicPartPoints(
+    info: DistanceAerobicInfo
+  ): number {
+    const points = (info.distanceSpeed / 100) * info.minutes;
+    return points;
+  }
+
+  function calculateAnaerobicPartPoints(info: AnaerobicInfo): number {
+    let points = info.reps * info.sets;
+    if (info.weight) {
+      points *= info.weight / 10;
+    }
+    return points;
+  }
+
+  /**
+   * Helper function to calculate bonus points based on challenge info.
+   * This is an arbitrary calculation based on the spec's hint.
+   */
+  function calculateBonusPoints(
+    level: Level,
     daysPerWeek: number,
     weeks: number
-  ): number => {
-    return Math.round(level * daysPerWeek ** 1.5 * weeks ** 2);
-  };
-
+  ): number {
+    const levelPts = getLevelPts(level);
+    return Math.round(levelPts * daysPerWeek ** 1.5 * weeks ** 2);
+  }
   await t.step(
     "[Action]: createChallenge - Valid Anaerobic Challenge",
     async () => {
@@ -60,7 +86,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       const name = name1;
       const creator = testUser1;
       const exercise = "Bench Press";
-      const level = 2;
+      const level = "Moderate";
       const daysPerWeek = 3;
       const weeks = 4;
 
@@ -111,11 +137,8 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       );
 
       // Verify points calculation
-      const expectedPartPoints = calculateExpectedPartPoints(
-        level,
-        anaerobicInfo
-      );
-      const expectedBonusPoints = calculateExpectedBonusPoints(
+      const expectedPartPoints = calculatePartPoints(level, anaerobicInfo);
+      const expectedBonusPoints = calculateBonusPoints(
         level,
         daysPerWeek,
         weeks
@@ -171,7 +194,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       const name = name2;
       const creator = testUser2;
       const exercise = "Jumping Jacks";
-      const level = 1;
+      const level = "Easy";
       const daysPerWeek = 5;
       const weeks = 2;
 
@@ -195,11 +218,8 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       assertEquals(details.length, 1);
       assertEquals(details[0].info, repAerobicInfo);
 
-      const expectedPartPoints = calculateExpectedPartPoints(
-        level,
-        repAerobicInfo
-      );
-      const expectedBonusPoints = calculateExpectedBonusPoints(
+      const expectedPartPoints = calculatePartPoints(level, repAerobicInfo);
+      const expectedBonusPoints = calculateBonusPoints(
         level,
         daysPerWeek,
         weeks
@@ -233,7 +253,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       const creator = testUser1;
       const name = name1;
       const exercise = "Running";
-      const level = 3;
+      const level = "Intense";
       const daysPerWeek = 2;
       const weeks = 8;
 
@@ -257,11 +277,11 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       assertEquals(details.length, 1);
       assertEquals(details[0].info, distanceAerobicInfo);
 
-      const expectedPartPoints = calculateExpectedPartPoints(
+      const expectedPartPoints = calculatePartPoints(
         level,
         distanceAerobicInfo
       );
-      const expectedBonusPoints = calculateExpectedBonusPoints(
+      const expectedBonusPoints = calculateBonusPoints(
         level,
         daysPerWeek,
         weeks
@@ -293,43 +313,12 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         reps: 10,
       };
 
-      // Test invalid level
+      // Test invalid daysPerWeek
       let result = await concept.createChallenge({
         name: name1,
         creator: testUser1,
         exercise: "Pushups",
-        level: 0,
-        info: validInfo,
-        daysPerWeek: 3,
-        weeks: 4,
-      });
-      assertEquals(
-        (result as { error: string }).error,
-        "Level must be an integer between 1 and 3.",
-        "Level 0 should fail."
-      );
-
-      result = await concept.createChallenge({
-        name: name1,
-        creator: testUser1,
-        exercise: "Pushups",
-        level: 4,
-        info: validInfo,
-        daysPerWeek: 3,
-        weeks: 4,
-      });
-      assertEquals(
-        (result as { error: string }).error,
-        "Level must be an integer between 1 and 3.",
-        "Level 4 should fail."
-      );
-
-      // Test invalid daysPerWeek
-      result = await concept.createChallenge({
-        name: name1,
-        creator: testUser1,
-        exercise: "Pushups",
-        level: 1,
+        level: "Easy",
         info: validInfo,
         daysPerWeek: 0,
         weeks: 4,
@@ -345,7 +334,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         name: name1,
         creator: testUser1,
         exercise: "Pushups",
-        level: 1,
+        level: "Easy",
         info: validInfo,
         daysPerWeek: 3,
         weeks: -1,
@@ -366,7 +355,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         name: name1,
         creator: testUser1,
         exercise: "Squats",
-        level: 1,
+        level: "Easy",
         info: invalidInfo,
         daysPerWeek: 3,
         weeks: 4,
@@ -382,7 +371,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         name: name1,
         creator: testUser1,
         exercise: "Squats",
-        level: 1,
+        level: "Easy",
         info: invalidInfo,
         daysPerWeek: 3,
         weeks: 4,
@@ -402,7 +391,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         name: name1,
         creator: testUser1,
         exercise: "Burpees",
-        level: 1,
+        level: "Easy",
         info: invalidRepAerobicInfo,
         daysPerWeek: 3,
         weeks: 4,
@@ -422,7 +411,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
         name: name1,
         creator: testUser1,
         exercise: "Running",
-        level: 1,
+        level: "Easy",
         info: invalidDistanceAerobicInfo,
         daysPerWeek: 3,
         weeks: 4,
@@ -647,7 +636,7 @@ Deno.test("ChallengeDefinition Concept Tests", async (t) => {
       console.log("\n--- Principle Fulfillment Trace ---");
       const creator = testUser1;
       const exercise = "Principle Test Exercise";
-      const level = 2;
+      const level = "Moderate";
       const daysPerWeek = 5;
       const weeks = 6;
       const info: AnaerobicInfo = {
