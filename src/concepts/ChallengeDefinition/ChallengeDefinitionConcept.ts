@@ -1,5 +1,5 @@
 import { Collection, Db } from "npm:mongodb";
-import { Empty, ID } from "@utils/types.ts";
+import { Empty, ID, Level } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
 import { assert } from "node:console";
 
@@ -52,7 +52,7 @@ interface ChallengeDoc {
   info: AnaerobicInfo | RepAerobicInfo | DistanceAerobicInfo;
   daysPerWeek: number; // days per week
   weeks: number; // weeks
-  level: number; // 1 to 3
+  level: Level;
   partPoints: number; // per part
   bonusPoints: number; // upon completion of entire challenge
   open: boolean;
@@ -66,15 +66,19 @@ export default class ChallengeDefinitionConcept {
     this.challenges = this.db.collection(PREFIX + "Challenges");
   }
 
+  private getLevelPts(level: Level): number {
+    return level === "Easy" ? 1 : level === "Moderate" ? 1.5 : 1.8;
+  }
   /**
    * Helper function to calculate points based on challenge info.
    * This is an arbitrary calculation based on the spec's hint.
    */
   private calculatePartPoints(
-    level: number,
+    level: Level,
     info: RepAerobicInfo | DistanceAerobicInfo | AnaerobicInfo
   ): number {
-    let basePoints = level * 10;
+    const levelPts = this.getLevelPts(level);
+    let basePoints = levelPts * 10;
     if (info._type === "RepAerobicInfo") {
       return (basePoints += this.calculateRepAerobicPartPoints(info));
     } else if (info._type === "DistanceAerobicInfo") {
@@ -109,11 +113,12 @@ export default class ChallengeDefinitionConcept {
    * This is an arbitrary calculation based on the spec's hint.
    */
   private calculateBonusPoints(
-    level: number,
+    level: Level,
     daysPerWeek: number,
     weeks: number
   ): number {
-    return Math.round(level * daysPerWeek ** 1.5 * weeks ** 2);
+    const levelPts = this.getLevelPts(level);
+    return Math.round(levelPts * daysPerWeek ** 1.5 * weeks ** 2);
   }
 
   /**
@@ -134,16 +139,12 @@ export default class ChallengeDefinitionConcept {
   }: {
     name: string;
     creator: User;
-    level: number;
+    level: Level;
     exercise: string;
     info: RepAerobicInfo | DistanceAerobicInfo | AnaerobicInfo;
     daysPerWeek: number;
     weeks: number;
   }): Promise<{ challenge: Challenge } | { error: string }> {
-    // Requires checks
-    if (!Number.isInteger(level) || level < 1 || level > 3) {
-      return { error: "Level must be an integer between 1 and 3." };
-    }
     if (!Number.isInteger(daysPerWeek) || daysPerWeek <= 0) {
       return { error: "DaysPerWeek must be a positive integer." };
     }
@@ -300,7 +301,7 @@ export default class ChallengeDefinitionConcept {
   async _getChallengeDetails({ challenge }: { challenge: Challenge }): Promise<
     Array<{
       exercise: string;
-      level: number;
+      level: Level;
       daysPerWeek: number;
       weeks: number;
       info: AnaerobicInfo | RepAerobicInfo | DistanceAerobicInfo;
