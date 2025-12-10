@@ -23,7 +23,7 @@ export const UserProfileEditRequest: Sync = ({ request,
         frames = await frames.query(
             Session._getUser,
             { session },
-            { actingUser },
+            { user: actingUser },
         )
         return frames.filter(($) => $[actingUser] === $[user]);
     },

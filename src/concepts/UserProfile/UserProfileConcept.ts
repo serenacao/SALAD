@@ -84,6 +84,8 @@ export default class UserProfileConcept {
       return { error: "User profile not found." };
     }
 
+    console.log('editing profile:', { user, location, bio, skillLevel, userImg });
+
     const updates: Partial<Omit<Profile, "_id" | "dateJoined">> = {};
     if (location !== undefined) updates.location = location;
     if (bio !== undefined) updates.bio = bio;
@@ -93,6 +95,7 @@ export default class UserProfileConcept {
     if (Object.keys(updates).length > 0) {
       await this.profiles.updateOne({ _id: user }, { $set: updates });
     }
+    console.log('profile updated successfully');
 
     return {};
   }
