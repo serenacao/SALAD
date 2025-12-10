@@ -1,29 +1,48 @@
-import { Requesting, UserProfile } from "@concepts";
+import { Requesting, UserProfile, Session } from "@concepts";
 import { actions, Sync } from "@engine";
 
 // User Profile creation handled in UserAuthentication syncs
 
 // User Profile editing request
 
-export const UserProfileEditRequest: Sync = ({ request, user, location, bio, skillLevel, userImg }) => ({
+export const UserProfileEditRequest: Sync = ({ request,
+    user,
+    session,
+    actingUser,
+    location,
+    bio,
+    skillLevel,
+    userImg,
+}) => ({
     when: actions([
         Requesting.request,
-        { path : "/editProfile", user, location, bio, skillLevel, userImg },
+        { path : "/editProfile", user, session, location, bio, skillLevel, userImg },
         { request },
     ]),
+    where: async (frames) => {
+        frames = await frames.query(
+            Session._getUser,
+            { session },
+            { actingUser },
+        )
+        return frames.filter(($) => $[actingUser] === $[user]);
+    },
     then: actions([
         UserProfile.editProfile,
         { user, location, bio, skillLevel, userImg },
     ]),
 });
 
-export const UserProfileEditResponse: Sync = ({ request, user}) => ({
+export const UserProfileEditResponse: Sync = ({ 
+    request, 
+    user,
+ }) => ({
     when: actions(
-        [Requesting.request, { path : "/editProfile", user }, { request }],
+        [Requesting.request, { path : "/editProfile", user}, { request }],
         [UserProfile.editProfile, { user }, {}],
     ),
     then: actions([
-        Requesting.respond, { user, request, status: "profile updated" },
+        Requesting.respond, { request, status: "profile updated" },
     ]),
 });
 
@@ -33,7 +52,7 @@ export const UserProfileEditError: Sync = ({ request, user, error }) => ({
         [UserProfile.editProfile, { user }, { error}],
     ),
     then: actions([
-        Requesting.respond, { request, error, user},
+        Requesting.respond, { request, error},
     ]),
 });
 
