@@ -372,7 +372,7 @@ export const DeleteGroupRequest: Sync = ({
 
 export const DeleteGroupResponseSuccess: Sync = ({ request, group }) => ({
   when: actions(
-    [Requesting.request, { path: "/createGroup" }, { request }],
+    [Requesting.request, { path: "/deleteGroup" }, { request }],
     [
       Group.deleteGroup,
       {
