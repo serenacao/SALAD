@@ -7,52 +7,31 @@ import { actions, Sync } from "@engine";
 
 // Add points to user when a challenge has been completed
 
-export const CheckChallengeCompletion: Sync = ({
-    part,
-    user,
-}) => ({
-    when: actions([
-        ChallengeProgress.completePart,
-        {   part,
-            user,
-        }, {}]),
-    then: actions([
-        ChallengeProgress._getPartChallenge,
-        { part },
-        { },
-    ]),
-});
 
-export const GetPointsforPart: Sync = ({
+export const AddPointsToUserOnChallengeCompletion: Sync = ({
     user,
+    part,
     challenge,
-    part,
-}) => ({
-    when: actions(
-        [ChallengeProgress.completePart,{ part, user },  {}],
-        [ChallengeProgress._getPartChallenge, { part }, { challenge }, ]
-    ),    
-    then: actions([
-        ChallengeDefinition._getPartPoints,
-        { challenge },
-        {},
-    ]),
-});
-
-export const AddPointsToLeaderboard: Sync = ({
-    user,
     points,
-    challenge,
-    part,
 }) => ({
     when: actions(
         [ChallengeProgress.completePart,{ part, user },  {}],
-        [ChallengeProgress._getPartChallenge, { part }, { challenge }, ],
-        [ChallengeDefinition._getPartPoints, { challenge }, { points }, ]
-    ),    
+    ),
+    where: async (frames) => {
+        frames = await frames.query(
+            ChallengeProgress._getPartChallenge,
+            {part},
+            {challenge},
+        );
+        frames = await frames.query(
+            ChallengeDefinition._getPartPoints,
+            {challenge},
+            {points},
+        );
+        return frames;
+    },
     then: actions([
         Leaderboard.addPoints,
         { user, points },
-        {},
     ]),
 });
