@@ -111,7 +111,8 @@ export default class ChatConcept {
    *
    * **requires** user is a part of chat
    *
-   * **effects** makes chat inaccessible to user (effectively deleting on their end)
+   * **effects** makes chat inaccessible to user (effectively deleting on their end, but still visible for other user if accessible for them)
+   * if chat is inaccessible for both users, it deletes the chat from the database
    */
   async deleteChat({
     chat,
@@ -120,7 +121,7 @@ export default class ChatConcept {
     chat: Chat;
     user: User;
   }): Promise<Empty | { error: string }> {
-    const chatDoc = await this.chats.findOne({ _id: chat });
+    let chatDoc = await this.chats.findOne({ _id: chat });
 
     if (!chatDoc) {
       return { error: "Chat not found" };
@@ -141,6 +142,16 @@ export default class ChatConcept {
         { _id: chat },
         { $set: { user2Accessible: false } }
       );
+    }
+
+    chatDoc = await this.chats.findOne({ _id: chat });
+
+    if (!chatDoc) {
+      return { error: "Error updating chat status" };
+    }
+
+    if (!chatDoc.user1Accessible && !chatDoc.user2Accessible) {
+      await this.chats.deleteOne({_id: chat});
     }
 
     return {};

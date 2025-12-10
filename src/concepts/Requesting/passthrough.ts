@@ -51,6 +51,8 @@ export const inclusions: Record<string, string> = {
   "/api/Leaderboard/_getGroupPoints": "public query",
   "/api/Leaderboard/_getUserRanking": "public query",
   "/api/Leaderboard/_getGroupRanking": "public query",
+
+  "/api/UserProfile/_getProfile": "public query",
 };
 
 /**
@@ -115,5 +117,8 @@ export const exclusions: Array<string> = [
   "/api/Leaderboard/addPoints",
   "/api/Leaderboard/removePoints",
   "/api/Leaderboard/addGroup",
-  "/api/Leaderboard/removeGroup"
+  "/api/Leaderboard/removeGroup",
+
+  "/api/UserProfile/createProfile",
+  "/api/UserProfile/editProfile",
 ];
