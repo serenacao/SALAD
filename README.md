@@ -1,5 +1,7 @@
 # SALAD
 
+[Project Report](./design/Project%20Report.md)
+
 **User Studies**
 
 [User Study 1](./design/User%20Study%201.md)
